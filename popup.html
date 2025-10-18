@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Extension Popup</title>
+    <link rel="stylesheet" href="styles/popup.css" />
+  </head>
+  <body>
+    <div class="popup-container">
+      <h2>New Page Extension</h2>
+      <p>Configure your new tab experience</p>
+
+      <div class="settings">
+        <label>
+          <input type="checkbox" id="showTime" checked />
+          Show Time
+        </label>
+        <label>
+          <input type="checkbox" id="showGreeting" checked />
+          Show Greeting
+        </label>
+        <label>
+          <input type="checkbox" id="showSearch" checked />
+          Show Search Box
+        </label>
+      </div>
+
+      <button id="saveBtn">Save Settings</button>
+      <div id="status" class="status"></div>
+    </div>
+
+    <script src="scripts/popup.js"></script>
+  </body>
+</html>

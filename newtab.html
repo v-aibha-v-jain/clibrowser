@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLI Tab</title>
+  <link rel="stylesheet" href="styles/newtab.css" />
+  <link rel="stylesheet" href="styles/settings.css" />
+</head>
+
+<body>
+  <script>
+    // Ensure the input gets focus immediately on page load
+    window.addEventListener("load", function () {
+      setTimeout(function () {
+        const input = document.getElementById("commandInput");
+        if (input) input.focus();
+      }, 0);
+    });
+  </script>
+  <div class="terminal-header">
+    <div class="terminal-title">
+      <div class="terminal-icon"></div>
+      <div class="title-text">Command Prompt</div>
+    </div>
+    <div class="terminal-controls">
+      <!-- Update this URL to your actual GitHub repo -->
+      <a href="https://github.com/v-aibha-v-jain/clibrowser" target="_blank" class="github-link" title="View on GitHub">
+        <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+          <path fill-rule="evenodd"
+            d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z">
+          </path>
+        </svg>
+      </a>
+    </div>
+  </div>
+  <div class="terminal">
+    <div class="command-line">
+      <span class="prompt">browser&gt;</span>
+      <span class="cursor">_</span>
+      <input type="text" id="commandInput" spellcheck="false" autocomplete="off" autofocus />
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="settings-overlay" id="settingsOverlay">
+    <div class="settings-modal">
+      <div class="settings-header">
+        <h2>⚙️ Settings</h2>
+        <button class="settings-close" id="closeSettings">&times;</button>
+      </div>
+
+      <div class="settings-tabs">
+        <button class="settings-tab active" data-tab="appearance">
+          Appearance
+        </button>
+      </div>
+
+      <div class="settings-content">
+        <!-- Appearance Panel -->
+        <div class="settings-panel active" id="appearance-panel">
+          <div class="form-group">
+            <label>Text Color (All)</label>
+            <div class="color-input-wrapper">
+              <input type="color" id="textColor" value="#ffffff" />
+              <input type="text" id="textColorHex" value="#ffffff" placeholder="#ffffff" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Command Text Color</label>
+            <div class="color-input-wrapper">
+              <input type="color" id="commandColor" value="#ffffff" />
+              <input type="text" id="commandColorHex" value="#ffffff" placeholder="#ffffff" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Response Text Color</label>
+            <div class="color-input-wrapper">
+              <input type="color" id="responseColor" value="#ffffff" />
+              <input type="text" id="responseColorHex" value="#ffffff" placeholder="#ffffff" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Prompt "browser>" Color</label>
+            <div class="color-input-wrapper">
+              <input type="color" id="promptColor" value="#ffffff" />
+              <input type="text" id="promptColorHex" value="#ffffff" placeholder="#ffffff" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Background Color</label>
+            <div class="color-input-wrapper">
+              <input type="color" id="bgColor" value="#000000" />
+              <input type="text" id="bgColorHex" value="#000000" placeholder="#000000" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Background Image</label>
+            <div class="file-upload">
+              <label for="bgImage" class="file-upload-btn">
+                📁 Choose Image
+              </label>
+              <input type="file" id="bgImage" accept="image/*" />
+              <div class="file-preview" id="bgImagePreview">
+                No image selected
+              </div>
+              <button class="btn-reset" id="removeBgImage">
+                Remove Background Image
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-footer">
+        <button class="btn-reset" id="resetSettings">Reset to Default</button>
+        <button class="btn-save" id="saveSettings">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="scripts/newtab.js"></script>
+  <script src="scripts/settings.js"></script>
+</body>
+
+</html>

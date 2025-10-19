@@ -1,11 +1,11 @@
 // Settings Management
 const DEFAULT_SETTINGS = {
   appearance: {
-    textColor: '#ffffff',
-    commandColor: '#ffffff',
-    responseColor: '#ffffff',
-    promptColor: '#ffffff',
-    bgColor: '#000000',
+    textColor: '#CDD6F4',      // Catppuccin Mocha Text
+    commandColor: '#89B4FA',    // Catppuccin Mocha Blue
+    responseColor: '#A6E3A1',   // Catppuccin Mocha Green
+    promptColor: '#F5C2E7',     // Catppuccin Mocha Pink
+    bgColor: '#1E1E2E',        // Catppuccin Mocha Base
     bgImage: null
   }
 };

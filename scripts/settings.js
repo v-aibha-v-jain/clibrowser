@@ -24,6 +24,14 @@ function saveSettingsToStorage(settings) {
   localStorage.setItem('terminalSettings', JSON.stringify(settings));
 }
 
+// Convert hex to RGB
+function hexToRgb(hex) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? 
+    `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : 
+    '0, 0, 0';
+}
+
 // Apply appearance settings
 function applyAppearanceSettings() {
   const settings = loadSettings();
@@ -32,6 +40,9 @@ function applyAppearanceSettings() {
   // Apply colors
   document.body.style.color = app.textColor;
   document.body.style.backgroundColor = app.bgColor;
+  
+  // Set RGB values for background color
+  document.documentElement.style.setProperty('--bg-color-rgb', hexToRgb(app.bgColor));
   
   // Apply command color to all typed text spans
   const commandLines = document.querySelectorAll('.command-line span:not(.prompt):not(.cursor)');

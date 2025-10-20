@@ -36,3 +36,7 @@ input:focus {
   margin-top: 5px;
   border-radius: 10px;
 }
+
+.command-output {
+  padding-top: 8px;
+}

@@ -56,14 +56,14 @@
 /* Settings Header */
 .settings-header {
   padding: 20px 25px;
-  border-bottom: 1px solid #4a4a4a;
+  border-bottom: 1px solid #313244;  /* Catppuccin Mocha Surface0 */
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .settings-header h2 {
-  color: #fff;
+  color: #cdd6f4;  /* Catppuccin Mocha Text */
   font-size: 24px;
   margin: 0;
   font-family: 'Consolas', 'Courier New', monospace;
@@ -92,15 +92,15 @@
 .settings-tabs {
   display: flex;
   padding: 0 25px;
-  background: #2a2a2a;
-  border-bottom: 1px solid #4a4a4a;
+  background: #181825;  /* Catppuccin Mocha Mantle */
+  border-bottom: 1px solid #313244;  /* Catppuccin Mocha Surface0 */
 }
 
 .settings-tab {
   padding: 15px 25px;
   background: none;
   border: none;
-  color: #999;
+  color: #6c7086;  /* Catppuccin Mocha Overlay0 */
   font-family: 'Consolas', 'Courier New', monospace;
   font-size: 14px;
   cursor: pointer;
@@ -110,13 +110,13 @@
 }
 
 .settings-tab:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.05);
+  color: #cdd6f4;  /* Catppuccin Mocha Text */
+  background: rgba(49, 50, 68, 0.5);  /* Catppuccin Mocha Surface0 */
 }
 
 .settings-tab.active {
-  color: #fff;
-  border-bottom-color: #6c63ff;
+  color: #cdd6f4;  /* Catppuccin Mocha Text */
+  border-bottom-color: #89b4fa;  /* Catppuccin Mocha Blue */
 }
 
 /* Settings Content */
@@ -214,10 +214,10 @@
   align-items: center;
   gap: 10px;
   padding: 10px 20px;
-  background: #1a1a1a;
-  border: 1px solid #4a4a4a;
+  background: #11111b;  /* Catppuccin Mocha Crust */
+  border: 1px solid #313244;  /* Catppuccin Mocha Surface0 */
   border-radius: 6px;
-  color: #fff;
+  color: #cdd6f4;  /* Catppuccin Mocha Text */
   cursor: pointer;
   transition: all 0.3s ease;
   font-family: 'Consolas', 'Courier New', monospace;
@@ -226,8 +226,8 @@
 }
 
 .file-upload-btn:hover {
-  background: #252525;
-  border-color: #6c63ff;
+  background: #181825;  /* Catppuccin Mocha Mantle */
+  border-color: #89b4fa;  /* Catppuccin Mocha Blue */
 }
 
 .file-upload input[type="file"] {
@@ -236,10 +236,10 @@
 
 .file-preview {
   padding: 10px;
-  background: #1a1a1a;
-  border: 1px solid #4a4a4a;
+  background: #11111b;  /* Catppuccin Mocha Crust */
+  border: 1px solid #313244;  /* Catppuccin Mocha Surface0 */
   border-radius: 6px;
-  color: #999;
+  color: #6c7086;  /* Catppuccin Mocha Overlay0 */
   font-size: 12px;
   font-family: 'Consolas', 'Courier New', monospace;
 }
@@ -342,11 +342,11 @@
 /* Save Button */
 .settings-footer {
   padding: 20px 25px;
-  border-top: 1px solid #4a4a4a;
+  border-top: 1px solid #313244;  /* Catppuccin Mocha Surface0 */
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  background: #2a2a2a;
+  background: #181825;  /* Catppuccin Mocha Mantle */
 }
 
 .btn-save,

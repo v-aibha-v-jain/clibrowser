@@ -79,7 +79,6 @@
         borderRadius: '8px',
         boxShadow: '0 18px 50px rgba(0,0,0,0.45)',
         zIndex: String(2147483647),
-        background: 'white',
         overflow: 'hidden',
         opacity: '0',
         transition: 'opacity 160ms ease, height 220ms cubic-bezier(.2,.9,.2,1)'

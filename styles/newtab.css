@@ -19,7 +19,6 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: rgba(72, 72, 72, 0.5);
   padding: 3px 5px;
   border-bottom: 1px solid #3e3e3e;
   user-select: none;

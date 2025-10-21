@@ -5,6 +5,15 @@
   if (window.__clibrowser_bubble_injected) return;
   window.__clibrowser_bubble_injected = true;
 
+  // Inject Font Awesome if not present
+  if (!document.querySelector('link[href*="fontawesome"]')) {
+    const fa = document.createElement('link');
+    fa.rel = 'stylesheet';
+    fa.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css';
+    fa.crossOrigin = 'anonymous';
+    document.head.appendChild(fa);
+  }
+
   function makeBubble(container) {
     if (document.getElementById(BUBBLE_ID)) return;
 
@@ -35,7 +44,7 @@
     });
 
     // compact icon (keeps visible on small size)
-    bubble.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display:block"><path d="M4 6H20" stroke="#000000ff" stroke-width="1.6" stroke-linecap="round"/><path d="M4 12H20" stroke="#000000ff" stroke-width="1.6" stroke-linecap="round"/><path d="M4 18H20" stroke="#000000ff" stroke-width="1.6" stroke-linecap="round"/></svg>';
+    bubble.innerHTML = '<i class="fa-solid fa-terminal" style="color:black; font-size:15px;"></i>';
 
     container.appendChild(bubble);
 
@@ -151,18 +160,42 @@
     })(bubble);
   }
 
+  // Only inject bubble if enabled in storage
+  function shouldShowBubble(cb) {
+    if (chrome && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.get({showTerminalBubble: true}, (data) => {
+        cb(!!data.showTerminalBubble);
+      });
+    } else {
+      cb(true); // fallback: always show
+    }
+  }
+
+  // Listen for changes to show/hide bubble live
+  if (chrome && chrome.storage && chrome.storage.onChanged) {
+    chrome.storage.onChanged.addListener((changes, area) => {
+      if (area === 'local' && changes.showTerminalBubble) {
+        const bubble = document.getElementById('clibrowser-terminal-bubble');
+        if (bubble) bubble.style.display = changes.showTerminalBubble.newValue ? '' : 'none';
+      }
+    });
+  }
+
   // inject after body exists, retry a few times
   let tries = 0;
   function inject() {
     tries++;
-    try {
-      const container = document.body || document.documentElement;
-      if (!container) throw new Error('no container');
-      makeBubble(container);
-    } catch (err) {
-      if (tries < 6) setTimeout(inject, 300);
-      else console.warn('clibrowser bubble injection failed:', err);
-    }
+    shouldShowBubble((enabled) => {
+      if (!enabled) return;
+      try {
+        const container = document.body || document.documentElement;
+        if (!container) throw new Error('no container');
+        makeBubble(container);
+      } catch (err) {
+        if (tries < 6) setTimeout(inject, 300);
+        else console.warn('clibrowser bubble injection failed:', err);
+      }
+    });
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', inject, { once: true });

@@ -1952,4 +1952,34 @@ if (document.readyState === 'loading') {
   focusCommandInput();
 }
 
+function showTab(tabName) {
+  // Remove active from all tabs and panels
+  document.querySelectorAll('.settings-tab').forEach(btn => btn.classList.remove('active'));
+  document.querySelectorAll('.settings-panel').forEach(panel => {
+    panel.classList.remove('active');
+    panel.style.display = 'none';
+  });
+
+  // Activate the selected tab and panel
+  document.querySelector(`.settings-tab[data-tab="${tabName}"]`).classList.add('active');
+  document.getElementById(`${tabName}-panel`).classList.add('active');
+  document.getElementById(`${tabName}-panel`).style.display = '';
+}
+
+document.getElementById('appearance-tab').onclick = function() {
+  showTab('appearance');
+};
+document.getElementById('preferences-tab').onclick = function() {
+  showTab('preferences');
+};
+
+// Load and save toggle state
+const toggle = document.getElementById('show-terminal-bubble-toggle');
+chrome.storage.local.get({showTerminalBubble: true}, (data) => {
+  toggle.checked = !!data.showTerminalBubble;
+});
+toggle.onchange = function() {
+  chrome.storage.local.set({showTerminalBubble: toggle.checked});
+};
+
 

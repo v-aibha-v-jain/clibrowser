@@ -7,6 +7,7 @@
   <title>CLI Tab</title>
   <link rel="stylesheet" href="styles/newtab.css" />
   <link rel="stylesheet" href="styles/settings.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 
 <body>
@@ -21,7 +22,7 @@
   </script>
   <div class="terminal-header">
     <div class="terminal-title">
-      <div class="terminal-icon"></div>
+      <div class="terminal-icon"><i class="fa-solid fa-terminal"></i></div>
       <div class="title-text">Command Prompt</div>
     </div>
     <div class="terminal-controls">
@@ -51,8 +52,11 @@
       </div>
 
       <div class="settings-tabs">
-        <button class="settings-tab active" data-tab="appearance">
+        <button class="settings-tab active" data-tab="appearance" id="appearance-tab">
           Appearance
+        </button>
+        <button class="settings-tab" data-tab="preferences" id="preferences-tab">
+          Preferences
         </button>
       </div>
 
@@ -114,6 +118,15 @@
               </button>
             </div>
           </div>
+        </div>
+        <div class="settings-panel" id="preferences-panel" style="display:none;">
+          <label class="switch-label" for="show-terminal-bubble-toggle">
+            Show Terminal Bubble
+            <label class="switch">
+              <input type="checkbox" id="show-terminal-bubble-toggle">
+              <span class="slider"></span>
+            </label>
+          </label>
         </div>
       </div>
 

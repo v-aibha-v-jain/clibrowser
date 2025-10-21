@@ -141,14 +141,6 @@ function syncColorInputs(colorInput, hexInput) {
   });
 }
 
-
-
-
-
-
-
-
-
 // Save settings
 function saveSettings() {
   const settings = loadSettings();

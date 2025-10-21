@@ -1,4 +1,3 @@
-
 (function () {
   // --- helpers: storage ---
   function getCustomBookmarks() {
@@ -243,3 +242,15 @@
   // expose for debugging (optional)
   window._popupTerminal = { getCustomBookmarks, getCustomFavorites, getNotes };
 })();
+
+document.addEventListener('DOMContentLoaded', function() {
+  const toggle = document.getElementById('popup-terminal-bubble-toggle');
+  // Load current value
+  chrome.storage.local.get({showTerminalBubble: true}, (data) => {
+    toggle.checked = !!data.showTerminalBubble;
+  });
+  // Save on change
+  toggle.onchange = function() {
+    chrome.storage.local.set({showTerminalBubble: toggle.checked});
+  };
+});

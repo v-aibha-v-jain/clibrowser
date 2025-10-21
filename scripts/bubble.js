@@ -120,8 +120,8 @@
       iframe.style.height = '48px';
 
       // restore bubble
-      bubble.style.width = '28px';
-      bubble.style.height = '28px';
+      bubble.style.width = '35px';
+      bubble.style.height = '35px';
       bubble.style.borderRadius = '14px';
       bubble.removeAttribute('data-open');
 

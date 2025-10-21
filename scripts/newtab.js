@@ -1982,4 +1982,54 @@ toggle.onchange = function() {
   chrome.storage.local.set({showTerminalBubble: toggle.checked});
 };
 
+// Default values
+const DEFAULT_HEADER_BLUR = 5;
+const DEFAULT_BACKGROUND_BLUR = 0;
+
+// Get elements
+const headerBlur = document.getElementById('headerBlur');
+const headerBlurValue = document.getElementById('headerBlurValue');
+const backgroundBlur = document.getElementById('backgroundBlur');
+const backgroundBlurValue = document.getElementById('backgroundBlurValue');
+
+// Load settings on open
+chrome.storage.local.get({
+  headerBlur: DEFAULT_HEADER_BLUR,
+  backgroundBlur: DEFAULT_BACKGROUND_BLUR
+}, (data) => {
+  headerBlur.value = data.headerBlur;
+  headerBlurValue.textContent = data.headerBlur;
+  backgroundBlur.value = data.backgroundBlur;
+  backgroundBlurValue.textContent = data.backgroundBlur;
+
+  // Apply blur immediately
+  applyBlur(data.headerBlur, data.backgroundBlur);
+});
+
+// Update value display and apply blur on slider change
+headerBlur.addEventListener('input', function() {
+  headerBlurValue.textContent = this.value;
+  applyBlur(this.value, backgroundBlur.value);
+});
+backgroundBlur.addEventListener('input', function() {
+  backgroundBlurValue.textContent = this.value;
+  applyBlur(headerBlur.value, this.value);
+});
+
+// Save on settings save
+document.getElementById('saveSettings').addEventListener('click', function() {
+  chrome.storage.local.set({
+    headerBlur: parseInt(headerBlur.value, 10),
+    backgroundBlur: parseInt(backgroundBlur.value, 10)
+  });
+});
+
+// Function to apply blur
+function applyBlur(header, bg) {
+  const headerEl = document.querySelector('.terminal-header');
+  const terminalEl = document.querySelector('.terminal');
+  if (headerEl) headerEl.style.backdropFilter = `blur(${header}px)`;
+  if (terminalEl) terminalEl.style.backdropFilter = `blur(${bg}px)`;
+}
+
 

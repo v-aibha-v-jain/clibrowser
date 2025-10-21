@@ -657,11 +657,6 @@ function setupCommandInput() {
   const cursor = document.querySelector('.cursor');
   const prompt = document.querySelector('.prompt');
   
-  // Keep input focused with multiple attempts
-  commandInput.focus();
-  setTimeout(() => commandInput.focus(), 0);
-  setTimeout(() => commandInput.focus(), 100);
-  
   // Refocus on click anywhere in the document
   document.addEventListener('click', () => {
     const activeCommandLine = document.querySelector('.command-line:last-of-type');
@@ -1831,27 +1826,40 @@ function init() {
     if (window.applyAppearanceSettings) {
       window.applyAppearanceSettings();
     }
-    
-    // Focus after settings are applied to ensure proper focus
-    const input = document.getElementById('commandInput');
-    if (input) input.focus();
   }, 100);
   
-  // Refocus terminal when page becomes visible again (after opening a new tab)
+  // --- FIX 1: For the INITIAL new tab focus ---
+  // This runs ONCE when the window first gets focus (after the address bar)
+  window.addEventListener(
+    'focus',
+    () => {
+      setTimeout(() => {
+        // Find the *last* command line, but not a special input prompt
+        const activeCommandLine = document.querySelector('.command-line:last-of-type:not(.input-mode)');
+        if (activeCommandLine) {
+          const input = activeCommandLine.querySelector('input');
+          if (input) input.focus();
+        }
+      }, 100); // 100ms delay to ensure browser is ready
+    },
+    { once: true } // This is key: it only runs ONCE on the first focus
+  );
+  
+  // --- FIX 2: For RE-FOCUSING when you tab away and back ---
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) {
-      // Use multiple attempts with varying delays to ensure focus is obtained
-      [0, 50, 100, 300].forEach(delay => {
-        setTimeout(() => {
-          const activeCommandLine = document.querySelector('.command-line:last-of-type');
-          if (activeCommandLine) {
-            const input = activeCommandLine.querySelector('input');
-            if (input) input.focus();
-          }
-        }, delay);
-      });
+    // We also check !isAwaitingInput so we don't refocus the main
+    // input while the user is typing in a special prompt.
+    if (!document.hidden && !isAwaitingInput) {
+      setTimeout(() => {
+        const activeCommandLine = document.querySelector('.command-line:last-of-type:not(.input-mode)');
+        if (activeCommandLine) {
+          const input = activeCommandLine.querySelector('input');
+          if (input) input.focus();
+        }
+      }, 100);
     }
   });
+}
   
   // Also refocus on window focus
   window.addEventListener('focus', () => {
@@ -1867,7 +1875,6 @@ function init() {
     });
   });
 }
-
 // Handle terminal header controls
 function setupTerminalHeader() {
   // Ensure clicks on the header don't prevent the terminal from receiving focus
@@ -1878,9 +1885,14 @@ function setupTerminalHeader() {
       if (!e.target.closest('.terminal-controls')) {
         e.preventDefault();
         
-        // Focus the command input
-        const input = document.getElementById('commandInput');
-        if (input) input.focus();
+        // --- THIS IS THE FIX ---
+        // Focus the (last) command input
+        const activeCommandLine = document.querySelector('.command-line:last-of-type');
+        if (activeCommandLine) {
+          const input = activeCommandLine.querySelector('input');
+          if (input) input.focus();
+        }
+        // --- END FIX ---
       }
     });
   }
@@ -1889,8 +1901,14 @@ function setupTerminalHeader() {
   const terminalTitle = document.querySelector('.terminal-title');
   if (terminalTitle) {
     terminalTitle.addEventListener('click', () => {
-      const input = document.getElementById('commandInput');
-      if (input) input.focus();
+      
+      // --- THIS IS THE FIX ---
+      const activeCommandLine = document.querySelector('.command-line:last-of-type');
+      if (activeCommandLine) {
+        const input = activeCommandLine.querySelector('input');
+        if (input) input.focus();
+      }
+      // --- END FIX ---
     });
   }
   
@@ -1903,7 +1921,7 @@ function setupTerminalHeader() {
       displayMessage('Minimize action triggered');
     });
   }
-  
+
   // Maximize button
   const maximizeBtn = document.querySelector('.terminal-maximize');
   if (maximizeBtn) {
@@ -1924,32 +1942,16 @@ function setupTerminalHeader() {
       }
     });
   }
-}
-
-// Focus the input field on load
-function focusCommandInput() {
-  const input = document.getElementById('commandInput');
-  if (input) {
-    input.focus();
-    
-    // For some browsers that might need a slight delay
-    setTimeout(() => {
-      input.focus();
-    }, 50);
-  }
-}
-
+} // <-- THIS (line 66) is the correct closing brace
 // Run when DOM is ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     init();
     setupTerminalHeader();
-    focusCommandInput();
   });
 } else {
   init();
   setupTerminalHeader();
-  focusCommandInput();
 }
 
 function showTab(tabName) {

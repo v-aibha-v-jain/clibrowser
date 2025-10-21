@@ -1819,15 +1819,15 @@ function requestTerminalInput(promptText, callback) {
 
 // Initialize
 function init() {
-  setupCommandInput();
-  
+  setupCommandInput(); // Make sure setupCommandInput is defined correctly elsewhere
+
   // Apply appearance settings after a short delay to ensure settings.js is loaded
   setTimeout(() => {
     if (window.applyAppearanceSettings) {
       window.applyAppearanceSettings();
     }
   }, 100);
-  
+
   // --- FIX 1: For the INITIAL new tab focus ---
   // This runs ONCE when the window first gets focus (after the address bar)
   window.addEventListener(
@@ -1844,7 +1844,7 @@ function init() {
     },
     { once: true } // This is key: it only runs ONCE on the first focus
   );
-  
+
   // --- FIX 2: For RE-FOCUSING when you tab away and back ---
   document.addEventListener('visibilitychange', () => {
     // We also check !isAwaitingInput so we don't refocus the main
@@ -1856,24 +1856,11 @@ function init() {
           const input = activeCommandLine.querySelector('input');
           if (input) input.focus();
         }
-      }, 100);
+      }, 100); // Use a small delay here too for consistency
     }
   });
-}
-  
-  // Also refocus on window focus
-  window.addEventListener('focus', () => {
-    // Use multiple attempts with varying delays to ensure focus is obtained
-    [0, 50, 100, 300].forEach(delay => {
-      setTimeout(() => {
-        const activeCommandLine = document.querySelector('.command-line:last-of-type');
-        if (activeCommandLine) {
-          const input = activeCommandLine.querySelector('input');
-          if (input) input.focus();
-        }
-      }, delay);
-    });
-  });
+
+  // The redundant second window.addEventListener('focus') block has been removed.
 }
 // Handle terminal header controls
 function setupTerminalHeader() {

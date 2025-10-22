@@ -723,10 +723,12 @@ function createNewCommandLine() {
   prompt.className = 'prompt';
   prompt.textContent = `${currentTerminalPathDisplay}>`;
   
-  // Create cursor
+  // Create cursor with user preference
   const cursor = document.createElement('span');
   cursor.className = 'cursor';
-  cursor.textContent = '_';
+  const settings = window.loadSettings ? window.loadSettings() : null;
+  const isVertical = settings?.preferences?.cursorStyle || false;
+  cursor.textContent = isVertical ? '|' : '_';
   
   // Create typed text span
   const typedText = document.createElement('span');
@@ -1766,7 +1768,9 @@ function requestTerminalInput(promptText, callback) {
 
   const cursor = document.createElement('span');
   cursor.className = 'cursor';
-  cursor.textContent = '_';
+  const settings = window.loadSettings ? window.loadSettings() : null;
+  const isVertical = settings?.preferences?.cursorStyle || false;
+  cursor.textContent = isVertical ? '|' : '_';
 
   const typedText = document.createElement('span');
   typedText.style.whiteSpace = 'pre';

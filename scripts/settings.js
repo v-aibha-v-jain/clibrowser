@@ -7,6 +7,9 @@ const DEFAULT_SETTINGS = {
     promptColor: '#ffffff',
     bgColor: '#000000',
     bgImage: null
+  },
+  preferences: {
+    cursorStyle: false // false = underscore (_), true = vertical (|)
   }
 };
 
@@ -102,6 +105,7 @@ function switchTab(tabName) {
 function loadSettingsIntoForm() {
   const settings = loadSettings();
   const app = settings.appearance;
+  const prefs = settings.preferences || DEFAULT_SETTINGS.preferences;
   
   // Load appearance settings
   document.getElementById('textColor').value = app.textColor;
@@ -126,6 +130,12 @@ function loadSettingsIntoForm() {
   } else {
     preview.textContent = 'No image selected';
   }
+  
+  // Load preferences
+  const cursorStyleSelect = document.getElementById('cursorStyle');
+  if (cursorStyleSelect) {
+    cursorStyleSelect.checked = prefs.cursorStyle || false;
+  }
 }
 
 // Color input sync
@@ -138,6 +148,19 @@ function syncColorInputs(colorInput, hexInput) {
     if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
       colorInput.value = e.target.value;
     }
+  });
+}
+
+// Apply cursor style preference
+function applyCursorStyle() {
+  const settings = loadSettings();
+  const prefs = settings.preferences || DEFAULT_SETTINGS.preferences;
+  const cursorChar = prefs.cursorStyle ? '|' : '_';
+  
+  // Update all existing cursors
+  const cursors = document.querySelectorAll('.cursor');
+  cursors.forEach(cursor => {
+    cursor.textContent = cursorChar;
   });
 }
 
@@ -157,8 +180,18 @@ function saveSettings() {
     bgImage: settings.appearance.bgImage // Keep existing image
   };
   
+  // Save preferences
+  const cursorStyleSelect = document.getElementById('cursorStyle');
+  if (!settings.preferences) {
+    settings.preferences = DEFAULT_SETTINGS.preferences;
+  }
+  if (cursorStyleSelect) {
+    settings.preferences.cursorStyle = cursorStyleSelect.checked;
+  }
+  
   saveSettingsToStorage(settings);
   applyAppearanceSettings();
+  applyCursorStyle();
 
   alert('Settings saved successfully!');
 }
@@ -211,6 +244,7 @@ function executeCustomCommand(name) {
 document.addEventListener('DOMContentLoaded', () => {
   // Apply saved settings on load
   applyAppearanceSettings();
+  applyCursorStyle();
   
   // Settings modal controls
   document.getElementById('closeSettings').addEventListener('click', closeSettingsModal);
@@ -259,17 +293,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('bgImage').addEventListener('change', handleBgImageUpload);
   document.getElementById('removeBgImage').addEventListener('click', removeBgImage);
   
-  // Prevent select dropdown from closing
-  const cursorStyleSelect = document.getElementById('cursorStyle');
-  if (cursorStyleSelect) {
-    cursorStyleSelect.addEventListener('mousedown', (e) => {
-      e.stopPropagation();
-    });
-    cursorStyleSelect.addEventListener('click', (e) => {
-      e.stopPropagation();
-    });
-  }
-  
   // Save/Reset buttons
   document.getElementById('saveSettings').addEventListener('click', saveSettings);
   document.getElementById('resetSettings').addEventListener('click', resetSettings);
@@ -278,3 +301,4 @@ document.addEventListener('DOMContentLoaded', () => {
 // Export for use in newtab.js
 window.openSettingsModal = openSettingsModal;
 window.applyAppearanceSettings = applyAppearanceSettings;
+window.loadSettings = loadSettings;

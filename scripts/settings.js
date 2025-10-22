@@ -159,7 +159,7 @@ function saveSettings() {
   
   saveSettingsToStorage(settings);
   applyAppearanceSettings();
-  
+
   alert('Settings saved successfully!');
 }
 

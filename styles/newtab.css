@@ -107,7 +107,10 @@ body {
 .input-mode input{
   background-color: transparent;
   border: none;
-  color:#fff
+  color: transparent;
+  caret-color: transparent;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 16px;
 }
 
 .input-mode input:focus{

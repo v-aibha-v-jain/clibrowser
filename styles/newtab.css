@@ -174,6 +174,80 @@ body {
   color: inherit;
 }
 
+/* Floating Clock UI */
+.floating-clock {
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid #2e2e2e;
+  border-radius: 8px;
+  min-width: 220px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+  color: #8f8f8f;
+}
+
+.floating-clock-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  cursor: move;
+  user-select: none;
+  border-bottom: 1px solid #2e2e2e;
+  background: #0d0d0d;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  font-size: 12px;
+}
+
+.floating-clock-actions button {
+  background: transparent;
+  border: none;
+  color: #cfcfcf;
+  font-size: 14px;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+.floating-clock-actions button:hover { color: #fff; }
+
+.floating-clock-body {
+  padding: 12px 16px 14px 16px;
+}
+
+.floating-clock-time {
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  font-size: 48px;
+  line-height: 1;
+}
+
+.floating-clock-settings {
+  margin-top: 10px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Faces */
+.clock-face-lcd .floating-clock-time {
+  color: #10ff58;
+  text-shadow: 0 0 6px rgba(16,255,88,0.5);
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.clock-face-pixel .floating-clock-time {
+  color: #23d34a;
+  text-shadow: 0 0 8px rgba(35,211,74,0.5);
+  font-family: 'Press Start 2P', 'Courier New', Courier, monospace;
+  letter-spacing: 2px;
+}
+
+.clock-face-matrix .floating-clock-time {
+  color: #8fd694;
+  text-shadow: 0 0 8px rgba(143,214,148,0.6);
+  font-family: 'Courier New', Courier, monospace;
+}
+
 /* Mobile View */
 @media (max-width: 768px) {
   .terminal {

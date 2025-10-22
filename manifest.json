@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "New Page Extension",
-  "version": "1.0.0",
+  "name": "CLI Tab",
+  "version": "1.0.1",
   "description": "A browser extension template that opens a custom new page",
   "permissions": [
     "tabs",

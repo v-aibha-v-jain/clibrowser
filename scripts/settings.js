@@ -17,7 +17,12 @@ const DEFAULT_SETTINGS = {
 function loadSettings() {
   const saved = localStorage.getItem('terminalSettings');
   if (saved) {
-    return JSON.parse(saved);
+    const settings = JSON.parse(saved);
+    // Ensure preferences object exists
+    if (!settings.preferences) {
+      settings.preferences = DEFAULT_SETTINGS.preferences;
+    }
+    return settings;
   }
   return DEFAULT_SETTINGS;
 }
@@ -67,6 +72,26 @@ function applyAppearanceSettings() {
   document.documentElement.style.setProperty('--command-color', app.commandColor);
   document.documentElement.style.setProperty('--response-color', app.responseColor);
   document.documentElement.style.setProperty('--prompt-color', app.promptColor);
+}
+
+// Apply cursor preference to all existing cursors
+function applyCursorPreference() {
+  const settings = loadSettings();
+  const verticalCursor = settings.preferences?.verticalCursor || false;
+  
+  // Update all cursor elements
+  const cursors = document.querySelectorAll('.cursor');
+  cursors.forEach(cursor => {
+    cursor.textContent = verticalCursor ? '|' : '_';
+    // Apply margin for tight spacing
+    if (verticalCursor) {
+      cursor.style.marginLeft = '-2px';
+      cursor.style.marginRight = '-2px';
+    } else {
+      cursor.style.marginLeft = '0px';
+      cursor.style.marginRight = '0px';
+    }
+  });
 }
 
 // Settings Modal Management
@@ -171,8 +196,10 @@ function saveSettings() {
   
   saveSettingsToStorage(settings);
   applyAppearanceSettings();
-
-  alert('Settings saved successfully!');
+  applyCursorPreference();
+  
+  // Close the settings modal
+  closeSettingsModal();
 }
 
 // Reset to default

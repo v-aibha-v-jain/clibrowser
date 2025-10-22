@@ -293,6 +293,17 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('bgImage').addEventListener('change', handleBgImageUpload);
   document.getElementById('removeBgImage').addEventListener('click', removeBgImage);
   
+  // Prevent select dropdown from closing
+  const cursorStyleSelect = document.getElementById('cursorStyle');
+  if (cursorStyleSelect) {
+    cursorStyleSelect.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
+    });
+    cursorStyleSelect.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+  }
+  
   // Save/Reset buttons
   document.getElementById('saveSettings').addEventListener('click', saveSettings);
   document.getElementById('resetSettings').addEventListener('click', resetSettings);

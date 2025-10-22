@@ -1840,7 +1840,7 @@ function init() {
           const input = activeCommandLine.querySelector('input');
           if (input) input.focus();
         }
-      }, 100); // 100ms delay to ensure browser is ready
+      }, 150); // 100ms delay to ensure browser is ready
     },
     { once: true } // This is key: it only runs ONCE on the first focus
   );
@@ -1851,7 +1851,7 @@ function init() {
     // input while the user is typing in a special prompt.
     if (!document.hidden && !isAwaitingInput) {
       setTimeout(() => {
-        const activeCommandLine = document.querySelector('.command-line:last-of-type:not(.input-mode)');
+        const activeCommandLine = document.querySelector('.command-line:last-of-type');
         if (activeCommandLine) {
           const input = activeCommandLine.querySelector('input');
           if (input) input.focus();

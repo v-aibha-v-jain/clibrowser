@@ -1896,11 +1896,6 @@ function init() {
     }
   }, 100);
 
-  // --- Initial focus when window first gets focus ---
-  window.addEventListener('focus', () => {
-    focusCommandInput();
-  }, { once: true });
-
   // --- Re-focus when returning to tab ---
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden && !isAwaitingInput) {
@@ -1908,8 +1903,30 @@ function init() {
     }
   });
 
-  // Try to grab focus immediately on load
-  focusCommandInput(); 
+  // --- AGGRESSIVE FOCUS ON LOAD ---
+  // This is a hack to win the "focus race" against the address bar.
+  // We will try to focus the input every 50ms until we succeed.
+  const focusInterval = setInterval(() => {
+    // Find the last command line's input
+    const cmdLine = document.querySelector('.command-line:last-of-type:not(.input-mode)') ||
+                    document.querySelector('.command-line:last-of-type');
+    
+    if (cmdLine) {
+      const input = cmdLine.querySelector('input');
+      if (input) {
+        // Try to focus it
+        input.focus({ preventScroll: true });
+        
+        // Check if we succeeded
+        if (document.activeElement === input) {
+          clearInterval(focusInterval); // We won! Stop trying.
+        }
+      }
+    }
+  }, 50); // Try every 50 milliseconds
+
+  // Just in case, stop trying after 2 seconds to prevent a loop
+  setTimeout(() => clearInterval(focusInterval), 2000);
 }
 
 // ============================

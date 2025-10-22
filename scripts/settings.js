@@ -7,6 +7,9 @@ const DEFAULT_SETTINGS = {
     promptColor: '#ffffff',
     bgColor: '#000000',
     bgImage: null
+  },
+  preferences: {
+    verticalCursor: false
   }
 };
 
@@ -126,6 +129,10 @@ function loadSettingsIntoForm() {
   } else {
     preview.textContent = 'No image selected';
   }
+  
+  // Load preferences
+  const prefs = settings.preferences || DEFAULT_SETTINGS.preferences;
+  document.getElementById('cursor-style-toggle').checked = prefs.verticalCursor || false;
 }
 
 // Color input sync
@@ -155,6 +162,11 @@ function saveSettings() {
     promptColor: document.getElementById('promptColor').value || textColorAll,
     bgColor: document.getElementById('bgColor').value,
     bgImage: settings.appearance.bgImage // Keep existing image
+  };
+  
+  // Save preferences
+  settings.preferences = {
+    verticalCursor: document.getElementById('cursor-style-toggle').checked
   };
   
   saveSettingsToStorage(settings);

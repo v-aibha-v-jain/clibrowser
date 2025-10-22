@@ -714,6 +714,10 @@ function setupCommandInput() {
 function createNewCommandLine() {
   const terminal = document.querySelector('.terminal');
   
+  // Load settings to get cursor preference
+  const settings = JSON.parse(localStorage.getItem('terminalSettings') || '{}');
+  const verticalCursor = settings.preferences?.verticalCursor || false;
+  
   // Create new command line
   const newCommandLine = document.createElement('div');
   newCommandLine.className = 'command-line';
@@ -723,14 +727,17 @@ function createNewCommandLine() {
   prompt.className = 'prompt';
   prompt.textContent = `${currentTerminalPathDisplay}>`;
   
+  // Create spans for text before and after cursor
+  const textBefore = document.createElement('span');
+  textBefore.style.whiteSpace = 'pre';
+  
+  const textAfter = document.createElement('span');
+  textAfter.style.whiteSpace = 'pre';
+  
   // Create cursor
   const cursor = document.createElement('span');
   cursor.className = 'cursor';
-  cursor.textContent = '_';
-  
-  // Create typed text span
-  const typedText = document.createElement('span');
-  typedText.style.whiteSpace = 'pre';
+  cursor.textContent = verticalCursor ? '|' : '_';
   
   // Create input
   const input = document.createElement('input');
@@ -741,8 +748,9 @@ function createNewCommandLine() {
   
   // Assemble command line
   newCommandLine.appendChild(prompt);
-  newCommandLine.appendChild(typedText);
+  newCommandLine.appendChild(textBefore);
   newCommandLine.appendChild(cursor);
+  newCommandLine.appendChild(textAfter);
   newCommandLine.appendChild(input);
   
   // Add to terminal
@@ -753,13 +761,21 @@ function createNewCommandLine() {
   const commandColor = getComputedStyle(document.documentElement).getPropertyValue('--command-color') || '#ffffff';
   prompt.style.color = promptColor;
   cursor.style.color = promptColor;
-  typedText.style.color = commandColor;
+  textBefore.style.color = commandColor;
+  textAfter.style.color = commandColor;
+  
+  // Function to update cursor position
+  function updateCursorPosition() {
+    const cursorPos = input.selectionStart || 0;
+    const text = input.value;
+    textBefore.textContent = text.substring(0, cursorPos);
+    textAfter.textContent = text.substring(cursorPos);
+  }
   
   // Setup input handler
-  input.addEventListener('input', () => {
-    typedText.textContent = input.value;
-  });
+  input.addEventListener('input', updateCursorPosition);
   
+  // Update cursor position on selection change (arrow keys, mouse clicks)
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       const command = input.value.trim();
@@ -767,27 +783,36 @@ function createNewCommandLine() {
         commandHistory.push(command);
         historyIndex = commandHistory.length;
       }
-      executeCommand(command, newCommandLine, typedText);
+      executeCommand(command, newCommandLine, textBefore);
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       if (historyIndex > 0) {
         historyIndex--;
         input.value = commandHistory[historyIndex];
-        typedText.textContent = input.value;
+        input.setSelectionRange(input.value.length, input.value.length);
+        updateCursorPosition();
       }
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
       if (historyIndex < commandHistory.length - 1) {
         historyIndex++;
         input.value = commandHistory[historyIndex];
-        typedText.textContent = input.value;
+        input.setSelectionRange(input.value.length, input.value.length);
+        updateCursorPosition();
       } else if (historyIndex === commandHistory.length - 1) {
         historyIndex = commandHistory.length;
         input.value = '';
-        typedText.textContent = '';
+        updateCursorPosition();
       }
+    } else if (e.key.startsWith('Arrow') || e.key === 'Home' || e.key === 'End') {
+      // Update cursor position after arrow/home/end keys
+      setTimeout(updateCursorPosition, 0);
     }
   });
+  
+  // Update cursor position on mouse clicks
+  input.addEventListener('click', updateCursorPosition);
+  input.addEventListener('select', updateCursorPosition);
   
   // Focus new input
   input.focus();
@@ -1748,6 +1773,10 @@ function requestTerminalInput(promptText, callback) {
 
   const terminal = document.querySelector('.terminal');
 
+  // Load settings to get cursor preference
+  const settings = JSON.parse(localStorage.getItem('terminalSettings') || '{}');
+  const verticalCursor = settings.preferences?.verticalCursor || false;
+
   // Display the prompt message
   const promptMsg = document.createElement('div');
   promptMsg.className = 'command-output';
@@ -1764,12 +1793,16 @@ function requestTerminalInput(promptText, callback) {
   inputPrompt.className = 'prompt';
   inputPrompt.textContent = '>';
 
+  // Create spans for text before and after cursor
+  const textBefore = document.createElement('span');
+  textBefore.style.whiteSpace = 'pre';
+  
+  const textAfter = document.createElement('span');
+  textAfter.style.whiteSpace = 'pre';
+
   const cursor = document.createElement('span');
   cursor.className = 'cursor';
-  cursor.textContent = '_';
-
-  const typedText = document.createElement('span');
-  typedText.style.whiteSpace = 'pre';
+  cursor.textContent = verticalCursor ? '|' : '_';
 
   const input = document.createElement('input');
   input.type = 'text';
@@ -1777,8 +1810,9 @@ function requestTerminalInput(promptText, callback) {
   input.autocomplete = 'off';
 
   inputLine.appendChild(inputPrompt);
-  inputLine.appendChild(typedText);
+  inputLine.appendChild(textBefore);
   inputLine.appendChild(cursor);
+  inputLine.appendChild(textAfter);
   inputLine.appendChild(input);
 
   terminal.appendChild(inputLine);
@@ -1788,18 +1822,26 @@ function requestTerminalInput(promptText, callback) {
   const commandColor = getComputedStyle(document.documentElement).getPropertyValue('--command-color') || '#ffffff';
   inputPrompt.style.color = promptColor;
   cursor.style.color = promptColor;
-  typedText.style.color = commandColor;
+  textBefore.style.color = commandColor;
+  textAfter.style.color = commandColor;
+
+  // Function to update cursor position
+  function updateCursorPosition() {
+    const cursorPos = input.selectionStart || 0;
+    const text = input.value;
+    textBefore.textContent = text.substring(0, cursorPos);
+    textAfter.textContent = text.substring(cursorPos);
+  }
 
   // Setup input handler
-  input.addEventListener('input', () => {
-    typedText.textContent = input.value;
-  });
+  input.addEventListener('input', updateCursorPosition);
 
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       const value = input.value;
       // Make the input permanent before removal
-      typedText.textContent = value;
+      textBefore.textContent = value;
+      textAfter.textContent = '';
       // Remove active input elements
       input.remove();
       cursor.remove();
@@ -1812,8 +1854,15 @@ function requestTerminalInput(promptText, callback) {
       isAwaitingInput = false;
       inputLine.remove();
       callback(null);
+    } else if (e.key.startsWith('Arrow') || e.key === 'Home' || e.key === 'End') {
+      // Update cursor position after arrow/home/end keys
+      setTimeout(updateCursorPosition, 0);
     }
   });
+
+  // Update cursor position on mouse clicks
+  input.addEventListener('click', updateCursorPosition);
+  input.addEventListener('select', updateCursorPosition);
 
   // Focus the input with a small delay to ensure DOM is ready
   setTimeout(() => {

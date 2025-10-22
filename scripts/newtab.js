@@ -1817,9 +1817,77 @@ function requestTerminalInput(promptText, callback) {
   window.scrollTo(0, document.body.scrollHeight);
 }
 
-// Initialize
+// ============================
+// Terminal Input Focus Handler
+// ============================
+
+// Optional debug flag
+const DEBUG_FOCUS = false;
+
+// Track if user is currently interacting with a special input/prompt
+isAwaitingInput = false; // default false; update this when user interacts with special inputs
+
+/**
+ * Focuses the command input field with retries, visibility checks, and optional callbacks.
+ * @param {number} retryCount - Current retry attempt (default 0)
+ * @param {function|null} onSuccess - Callback if focus is successful
+ * @param {function|null} onFailure - Callback if focus fails after max retries
+ */
+function focusCommandInput(retryCount = 0, onSuccess = null, onFailure = null) {
+  const MAX_RETRIES = 5;
+  const BASE_DELAY = 120; // ms (for exponential backoff)
+  const INITIAL_DELAY = 200; // ms before first attempt
+
+  function isFocusable(element) {
+    if (!element) return false;
+    if (element.disabled) return false;
+    if (element.tabIndex < 0) return false;
+    if (!element.offsetParent) return false;
+    let el = element;
+    while (el) {
+      if (el.style && getComputedStyle(el).display === 'none') return false;
+      el = el.parentElement;
+    }
+    return true;
+  }
+
+  setTimeout(() => {
+    const cmdLine = document.querySelector('.command-line:last-of-type:not(.input-mode)') ||
+                    document.querySelector('.command-line:last-of-type');
+
+    if (!cmdLine) {
+      if (retryCount < MAX_RETRIES) {
+        focusCommandInput(retryCount + 1, onSuccess, onFailure);
+      } else {
+        if (DEBUG_FOCUS) console.warn('⚠️ Could not find command line element after max retries.');
+        if (onFailure) onFailure();
+      }
+      return;
+    }
+
+    const input = cmdLine.querySelector('input');
+
+    if (input && isFocusable(input)) {
+      input.focus({ preventScroll: true });
+      if (onSuccess) onSuccess();
+      return;
+    }
+
+    if (retryCount < MAX_RETRIES) {
+      const delay = BASE_DELAY * Math.pow(2, retryCount);
+      setTimeout(() => focusCommandInput(retryCount + 1, onSuccess, onFailure), delay);
+    } else {
+      if (DEBUG_FOCUS) console.warn('⚠️ Could not focus input after max retries.');
+      if (onFailure) onFailure();
+    }
+  }, retryCount === 0 ? INITIAL_DELAY : 0);
+}
+
+// ============================
+// Initialize Terminal
+// ============================
 function init() {
-  setupCommandInput(); // Make sure setupCommandInput is defined correctly elsewhere
+  setupCommandInput(); // ensure this function is defined elsewhere
 
   // Apply appearance settings after a short delay to ensure settings.js is loaded
   setTimeout(() => {
@@ -1828,78 +1896,48 @@ function init() {
     }
   }, 100);
 
-  // --- FIX 1: For the INITIAL new tab focus ---
-  // This runs ONCE when the window first gets focus (after the address bar)
-  window.addEventListener(
-    'focus',
-    () => {
-      setTimeout(() => {
-        // Find the *last* command line, but not a special input prompt
-        const activeCommandLine = document.querySelector('.command-line:last-of-type:not(.input-mode)');
-        if (activeCommandLine) {
-          const input = activeCommandLine.querySelector('input');
-          if (input) input.focus();
-        }
-      }, 150); // 100ms delay to ensure browser is ready
-    },
-    { once: true } // This is key: it only runs ONCE on the first focus
-  );
+  // --- Initial focus when window first gets focus ---
+  window.addEventListener('focus', () => {
+    focusCommandInput();
+  }, { once: true });
 
-  // --- FIX 2: For RE-FOCUSING when you tab away and back ---
+  // --- Re-focus when returning to tab ---
   document.addEventListener('visibilitychange', () => {
-    // We also check !isAwaitingInput so we don't refocus the main
-    // input while the user is typing in a special prompt.
     if (!document.hidden && !isAwaitingInput) {
-      setTimeout(() => {
-        const activeCommandLine = document.querySelector('.command-line:last-of-type');
-        if (activeCommandLine) {
-          const input = activeCommandLine.querySelector('input');
-          if (input) input.focus();
-        }
-      }, 100); // Use a small delay here too for consistency
+      focusCommandInput();
     }
   });
-
-  // The redundant second window.addEventListener('focus') block has been removed.
 }
-// Handle terminal header controls
+
+// ============================
+// Terminal Header Controls
+// ============================
 function setupTerminalHeader() {
-  // Ensure clicks on the header don't prevent the terminal from receiving focus
   const terminalHeader = document.querySelector('.terminal-header');
   if (terminalHeader) {
     terminalHeader.addEventListener('mousedown', (e) => {
-      // Don't prevent default for control buttons
       if (!e.target.closest('.terminal-controls')) {
         e.preventDefault();
-        
-        // --- THIS IS THE FIX ---
-        // Focus the (last) command input
-        const activeCommandLine = document.querySelector('.command-line:last-of-type');
-        if (activeCommandLine) {
-          const input = activeCommandLine.querySelector('input');
-          if (input) input.focus();
-        }
-        // --- END FIX ---
+        focusCommandInput(); // Focus last command input
       }
     });
   }
-  
-  // Make the header act like a typical window header (can be dragged in the future)
+
   const terminalTitle = document.querySelector('.terminal-title');
   if (terminalTitle) {
     terminalTitle.addEventListener('click', () => {
-      
-      // --- THIS IS THE FIX ---
-      const activeCommandLine = document.querySelector('.command-line:last-of-type');
-      if (activeCommandLine) {
-        const input = activeCommandLine.querySelector('input');
-        if (input) input.focus();
-      }
-      // --- END FIX ---
+      focusCommandInput(); // Focus last command input
     });
   }
-  
-  // Minimize button
+}
+
+// ============================
+// Activate Terminal
+// ============================
+init();
+setupTerminalHeader();
+
+// Minimize button
   const minimizeBtn = document.querySelector('.terminal-minimize');
   if (minimizeBtn) {
     minimizeBtn.addEventListener('click', () => {
@@ -1929,7 +1967,7 @@ function setupTerminalHeader() {
       }
     });
   }
-} // <-- THIS (line 66) is the correct closing brace
+ // <-- THIS (line 66) is the correct closing brace
 // Run when DOM is ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
@@ -1962,13 +2000,46 @@ document.getElementById('preferences-tab').onclick = function() {
   showTab('preferences');
 };
 
-// Load and save toggle state
 const toggle = document.getElementById('show-terminal-bubble-toggle');
-chrome.storage.local.get({showTerminalBubble: true}, (data) => {
-  toggle.checked = !!data.showTerminalBubble;
+
+// Helper functions to safely access storage
+
+function getStorage(key, defaultValue, callback) {
+  if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
+    chrome.storage.local.get({ [key]: defaultValue }, (data) => callback(data[key]));
+  } else {
+    // Fallback: use localStorage for web environments
+    const stored = localStorage.getItem(key);
+    if (stored !== null) {
+      try {
+        callback(JSON.parse(stored));
+      } catch {
+        callback(stored);
+      }
+    } else {
+      callback(defaultValue);
+    }
+  }
+}
+
+function setStorage(key, value) {
+  if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
+    chrome.storage.local.set({ [key]: value });
+  } else {
+    // Fallback: use localStorage for web environments
+    localStorage.setItem(key, JSON.stringify(value));
+  }
+}
+
+// Load saved toggle state
+getStorage('showTerminalBubble', true, (value) => {
+  toggle.checked = value;
 });
-toggle.onchange = function() {
-  chrome.storage.local.set({showTerminalBubble: toggle.checked});
+
+// Save toggle state on change
+toggle.onchange = function () {
+  setStorage('showTerminalBubble', toggle.checked);
+  console.log('Toggle changed:', toggle.checked); // optional debug
 };
 
 // Default values
@@ -1982,18 +2053,18 @@ const backgroundBlur = document.getElementById('backgroundBlur');
 const backgroundBlurValue = document.getElementById('backgroundBlurValue');
 
 // Load settings on open
-chrome.storage.local.get({
-  headerBlur: DEFAULT_HEADER_BLUR,
-  backgroundBlur: DEFAULT_BACKGROUND_BLUR
-}, (data) => {
-  headerBlur.value = data.headerBlur;
-  headerBlurValue.textContent = data.headerBlur;
-  backgroundBlur.value = data.backgroundBlur;
-  backgroundBlurValue.textContent = data.backgroundBlur;
-
-  // Apply blur immediately
-  applyBlur(data.headerBlur, data.backgroundBlur);
+getStorage('headerBlur', DEFAULT_HEADER_BLUR, value => {
+  headerBlur.value = value;
+  headerBlurValue.textContent = value;
+  applyBlur(value, backgroundBlur.value);
 });
+
+getStorage('backgroundBlur', DEFAULT_BACKGROUND_BLUR, value => {
+  backgroundBlur.value = value;
+  backgroundBlurValue.textContent = value;
+  applyBlur(headerBlur.value, value);
+});
+
 
 // Update value display and apply blur on slider change
 headerBlur.addEventListener('input', function() {
@@ -2006,12 +2077,12 @@ backgroundBlur.addEventListener('input', function() {
 });
 
 // Save on settings save
+// Save on settings save
 document.getElementById('saveSettings').addEventListener('click', function() {
-  chrome.storage.local.set({
-    headerBlur: parseInt(headerBlur.value, 10),
-    backgroundBlur: parseInt(backgroundBlur.value, 10)
-  });
+  setStorage('headerBlur', parseInt(headerBlur.value, 10));
+  setStorage('backgroundBlur', parseInt(backgroundBlur.value, 10));
 });
+
 
 // Function to apply blur
 function applyBlur(header, bg) {

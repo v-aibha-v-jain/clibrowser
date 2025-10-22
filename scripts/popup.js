@@ -246,11 +246,12 @@
 document.addEventListener('DOMContentLoaded', function() {
   const toggle = document.getElementById('popup-terminal-bubble-toggle');
   // Load current value
-  chrome.storage.local.get({showTerminalBubble: true}, (data) => {
-    toggle.checked = !!data.showTerminalBubble;
-  });
-  // Save on change
-  toggle.onchange = function() {
-    chrome.storage.local.set({showTerminalBubble: toggle.checked});
-  };
+getStorage('showTerminalBubble', true, value => {
+  toggle.checked = value;
+});
+
+toggle.onchange = function () {
+  setStorage('showTerminalBubble', toggle.checked);
+  console.log('Toggle changed:', toggle.checked); // optional debug
+};
 });

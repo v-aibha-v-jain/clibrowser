@@ -160,15 +160,26 @@
   }
 
   // Only inject bubble if enabled in storage
-  function shouldShowBubble(cb) {
-    if (chrome && chrome.storage && chrome.storage.local) {
-      chrome.storage.local.get({showTerminalBubble: true}, (data) => {
-        cb(!!data.showTerminalBubble);
-      });
+function shouldShowBubble(cb) {
+  if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
+    chrome.storage.local.get({showTerminalBubble: true}, (data) => {
+      cb(!!data.showTerminalBubble);
+    });
+  } else {
+    // Use localStorage fallback
+    const val = localStorage.getItem('showTerminalBubble');
+    if (val !== null) {
+      try {
+        cb(!!JSON.parse(val));
+      } catch {
+        cb(!!val);
+      }
     } else {
       cb(true); // fallback: always show
     }
   }
+}
+
 
   // Listen for changes to show/hide bubble live
   if (chrome && chrome.storage && chrome.storage.onChanged) {

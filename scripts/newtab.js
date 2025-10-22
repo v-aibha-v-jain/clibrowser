@@ -1768,7 +1768,9 @@ function requestTerminalInput(promptText, callback) {
 
   const cursor = document.createElement('span');
   cursor.className = 'cursor';
-  cursor.textContent = '_';
+  const settings = window.loadSettings ? window.loadSettings() : null;
+  const cursorStyle = settings?.preferences?.cursorStyle || 'underscore';
+  cursor.textContent = cursorStyle === 'vertical' ? '|' : '_';
 
   const typedText = document.createElement('span');
   typedText.style.whiteSpace = 'pre';

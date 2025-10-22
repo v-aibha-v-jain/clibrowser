@@ -7,9 +7,6 @@ const DEFAULT_SETTINGS = {
     promptColor: '#ffffff',
     bgColor: '#000000',
     bgImage: null
-  },
-  preferences: {
-    cursorStyle: 'underscore' // 'underscore' or 'vertical'
   }
 };
 
@@ -105,7 +102,6 @@ function switchTab(tabName) {
 function loadSettingsIntoForm() {
   const settings = loadSettings();
   const app = settings.appearance;
-  const prefs = settings.preferences || DEFAULT_SETTINGS.preferences;
   
   // Load appearance settings
   document.getElementById('textColor').value = app.textColor;
@@ -130,12 +126,6 @@ function loadSettingsIntoForm() {
   } else {
     preview.textContent = 'No image selected';
   }
-  
-  // Load preferences
-  const cursorStyleSelect = document.getElementById('cursorStyle');
-  if (cursorStyleSelect) {
-    cursorStyleSelect.value = prefs.cursorStyle || 'underscore';
-  }
 }
 
 // Color input sync
@@ -148,19 +138,6 @@ function syncColorInputs(colorInput, hexInput) {
     if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
       colorInput.value = e.target.value;
     }
-  });
-}
-
-// Apply cursor style preference
-function applyCursorStyle() {
-  const settings = loadSettings();
-  const prefs = settings.preferences || DEFAULT_SETTINGS.preferences;
-  const cursorChar = prefs.cursorStyle === 'vertical' ? '|' : '_';
-  
-  // Update all existing cursors
-  const cursors = document.querySelectorAll('.cursor');
-  cursors.forEach(cursor => {
-    cursor.textContent = cursorChar;
   });
 }
 
@@ -180,19 +157,9 @@ function saveSettings() {
     bgImage: settings.appearance.bgImage // Keep existing image
   };
   
-  // Save preferences
-  const cursorStyleSelect = document.getElementById('cursorStyle');
-  if (!settings.preferences) {
-    settings.preferences = DEFAULT_SETTINGS.preferences;
-  }
-  if (cursorStyleSelect) {
-    settings.preferences.cursorStyle = cursorStyleSelect.value;
-  }
-  
   saveSettingsToStorage(settings);
   applyAppearanceSettings();
-  applyCursorStyle();
-  
+
   alert('Settings saved successfully!');
 }
 
@@ -244,7 +211,6 @@ function executeCustomCommand(name) {
 document.addEventListener('DOMContentLoaded', () => {
   // Apply saved settings on load
   applyAppearanceSettings();
-  applyCursorStyle();
   
   // Settings modal controls
   document.getElementById('closeSettings').addEventListener('click', closeSettingsModal);
@@ -312,4 +278,3 @@ document.addEventListener('DOMContentLoaded', () => {
 // Export for use in newtab.js
 window.openSettingsModal = openSettingsModal;
 window.applyAppearanceSettings = applyAppearanceSettings;
-window.loadSettings = loadSettings;

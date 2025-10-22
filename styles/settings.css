@@ -202,8 +202,7 @@ input:checked + .slider:before {
 
 .form-group input[type="text"],
 .form-group input[type="color"],
-.form-group textarea,
-.form-group select {
+.form-group textarea {
   width: 100%;
   padding: 10px 15px;
   background: #1a1a1a;
@@ -216,8 +215,7 @@ input:checked + .slider:before {
 }
 
 .form-group input[type="text"]:focus,
-.form-group textarea:focus,
-.form-group select:focus {
+.form-group textarea:focus {
   outline: none;
   border-color: #6c63ff;
 }

@@ -723,12 +723,10 @@ function createNewCommandLine() {
   prompt.className = 'prompt';
   prompt.textContent = `${currentTerminalPathDisplay}>`;
   
-  // Create cursor with user preference
+  // Create cursor
   const cursor = document.createElement('span');
   cursor.className = 'cursor';
-  const settings = window.loadSettings ? window.loadSettings() : null;
-  const cursorStyle = settings?.preferences?.cursorStyle || 'underscore';
-  cursor.textContent = cursorStyle === 'vertical' ? '|' : '_';
+  cursor.textContent = '_';
   
   // Create typed text span
   const typedText = document.createElement('span');

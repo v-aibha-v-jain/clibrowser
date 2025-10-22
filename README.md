@@ -209,9 +209,18 @@ Open settings by typing `open settings` in the terminal to customize:
 4. **Tab Completion**: Use Tab key for auto-completion (coming soon)
 5. **Nested Bookmarks**: Organize bookmarks in folders like `work/projects/web`
 
-## Contributing
+
+# Contributors 🌟
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+Thank you to all the amazing people who have contributed to CLI Browser!
+
+<div align="center">
+
+[![Contributors](https://contrib.rocks/image?repo=v-aibha-v-jain/clibrowser)](https://github.com/v-aibha-v-jain/clibrowser/graphs/contributors)
+
+</div>
 
 ## License
 

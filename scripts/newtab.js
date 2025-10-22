@@ -1907,6 +1907,9 @@ function init() {
       focusCommandInput();
     }
   });
+
+  // 👇 THIS IS THE NEW LINE YOU ARE ADDING
+  focusCommandInput(); // Try to grab focus immediately on load
 }
 
 // ============================

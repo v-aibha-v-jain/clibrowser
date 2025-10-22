@@ -1836,7 +1836,7 @@ isAwaitingInput = false; // default false; update this when user interacts with 
 function focusCommandInput(retryCount = 0, onSuccess = null, onFailure = null) {
   const MAX_RETRIES = 5;
   const BASE_DELAY = 120; // ms (for exponential backoff)
-  const INITIAL_DELAY = 200; // ms before first attempt
+  const INITIAL_DELAY = 1; // 1ms. THIS IS THE FIX. Was 200.
 
   function isFocusable(element) {
     if (!element) return false;
@@ -1908,8 +1908,8 @@ function init() {
     }
   });
 
-  // 👇 THIS IS THE NEW LINE YOU ARE ADDING
-  focusCommandInput(); // Try to grab focus immediately on load
+  // Try to grab focus immediately on load
+  focusCommandInput(); 
 }
 
 // ============================

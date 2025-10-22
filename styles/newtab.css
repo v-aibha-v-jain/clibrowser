@@ -125,6 +125,7 @@ body {
 
 .cursor {
   display: inline-block;
+  margin-left: -2px;
   animation: blink 1s step-end infinite;
   user-select: none;
   pointer-events: none;

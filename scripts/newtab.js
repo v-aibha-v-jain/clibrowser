@@ -938,6 +938,18 @@ function executeCommand(command, commandLine, typedText) {
     clearTerminal();
     return;
   }
+
+  // Command: --clear-history - clear browser history
+  if (cmd === '--clear-history') {
+    if (chrome && chrome.history && chrome.history.deleteAll) {
+      chrome.history.deleteAll(() => {
+        displayMessage('Browsing history cleared successfully!');
+      });
+    } else {
+      displayMessage('Error: Unable to clear history. Make sure the extension has the necessary permissions.');
+    }
+    return;
+  }
   
   // Command: open - enhanced to work with paths
   if (cmd === 'open') {

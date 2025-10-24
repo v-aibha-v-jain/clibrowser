@@ -194,7 +194,10 @@ let clockUiDragOffsetY = 0;
 
 function getStoredClockFace() {
   try {
-    return localStorage.getItem('clockFace') || 'lcd';
+    const v = localStorage.getItem('clockFace') || 'lcd';
+    // Map legacy/removed styles to closest options
+    if (v === 'led' || v === 'matrix') return 'lcd';
+    return v;
   } catch (_) {
     return 'lcd';
   }
@@ -202,6 +205,15 @@ function getStoredClockFace() {
 
 function setStoredClockFace(face) {
   try { localStorage.setItem('clockFace', face); } catch (_) {}
+}
+
+function setClockUiOpenState(isOpen) {
+  try { localStorage.setItem('clockUiOpen', isOpen ? '1' : '0'); } catch (_) {}
+  try {
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.set({ clockUiOpen: !!isOpen });
+    }
+  } catch (_) {}
 }
 
 function getStoredClockPosition() {
@@ -215,6 +227,12 @@ function getStoredClockPosition() {
 
 function setStoredClockPosition(pos) {
   try { localStorage.setItem('clockUiPosition', JSON.stringify(pos)); } catch (_) {}
+  // Also persist in chrome.storage.local when available
+  try {
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.set({ clockUiPosition: pos });
+    }
+  } catch (_) {}
 }
 
 function formatClockTime() {
@@ -224,9 +242,11 @@ function formatClockTime() {
 }
 
 function applyClockFaceClass(container, face) {
-  container.classList.remove('clock-face-lcd', 'clock-face-pixel', 'clock-face-matrix');
+  container.classList.remove('clock-face-lcd', 'clock-face-lcd-red', 'clock-face-pixel', 'clock-face-matrix', 'clock-face-analog', 'clock-face-led');
   if (face === 'pixel') container.classList.add('clock-face-pixel');
   else if (face === 'matrix') container.classList.add('clock-face-matrix');
+  else if (face === 'analog') container.classList.add('clock-face-analog');
+  else if (face === 'lcd-red') container.classList.add('clock-face-lcd-red');
   else container.classList.add('clock-face-lcd');
 }
 
@@ -235,6 +255,7 @@ function openClockUI() {
   if (clockUiEl) {
     clockUiEl.style.display = 'block';
     clockUiEl.style.zIndex = '9999';
+    setClockUiOpenState(true);
     return;
   }
 
@@ -247,6 +268,24 @@ function openClockUI() {
   container.style.left = `${pos.left}px`;
   container.style.top = `${pos.top}px`;
   container.style.zIndex = '9999';
+
+  // If a saved position exists in chrome.storage.local, prefer it
+  try {
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.get('clockUiPosition', (data) => {
+        const saved = data && data.clockUiPosition;
+        if (saved && typeof saved.left === 'number' && typeof saved.top === 'number') {
+          let left = saved.left;
+          let top = saved.top;
+          // Clamp within viewport
+          left = Math.max(0, Math.min(window.innerWidth - container.offsetWidth, left));
+          top = Math.max(0, Math.min(window.innerHeight - container.offsetHeight, top));
+          container.style.left = `${left}px`;
+          container.style.top = `${top}px`;
+        }
+      });
+    }
+  } catch (_) {}
 
   const header = document.createElement('div');
   header.className = 'floating-clock-header';
@@ -271,6 +310,24 @@ function openClockUI() {
   const timeEl = document.createElement('div');
   timeEl.className = 'floating-clock-time';
   timeEl.textContent = formatClockTime();
+  // Analog clock container (hidden by default)
+  const analogEl = document.createElement('div');
+  analogEl.className = 'floating-clock-analog';
+  analogEl.style.display = 'none';
+  analogEl.innerHTML = `
+    <svg viewBox="0 0 100 100" width="180" height="180">
+      <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" stroke-width="2" />
+      <g id="ticks">
+        ${Array.from({length:60}).map((_,i)=>{
+          const length = (i%5===0) ? 6 : 3;
+          return `<line x1="50" y1="4" x2="50" y2="${4+length}" stroke="currentColor" stroke-width="${i%5===0?1.5:0.8}" transform="rotate(${i*6} 50 50)" />`;
+        }).join('')}
+      </g>
+      <line id="hourHand" x1="50" y1="50" x2="50" y2="30" stroke="currentColor" stroke-linecap="round" stroke-width="3" />
+      <line id="minuteHand" x1="50" y1="50" x2="50" y2="22" stroke="currentColor" stroke-linecap="round" stroke-width="2" />
+      <line id="secondHand" x1="50" y1="53" x2="50" y2="16" stroke="currentColor" stroke-linecap="round" stroke-width="1" />
+      <circle cx="50" cy="50" r="1.8" fill="currentColor" />
+    </svg>`;
   const settingsEl = document.createElement('div');
   settingsEl.className = 'floating-clock-settings';
   settingsEl.style.display = 'none';
@@ -280,8 +337,9 @@ function openClockUI() {
   select.className = 'floating-clock-select';
   const faces = [
     { value: 'lcd', label: 'LCD Green' },
+    { value: 'lcd-red', label: 'LCD Red' },
     { value: 'pixel', label: 'Big Pixel' },
-    { value: 'matrix', label: 'Matrix' },
+    { value: 'analog', label: 'Analog' },
   ];
   faces.forEach(f => {
     const opt = document.createElement('option');
@@ -294,12 +352,24 @@ function openClockUI() {
   settingsEl.appendChild(select);
 
   body.appendChild(timeEl);
+  body.appendChild(analogEl);
   body.appendChild(settingsEl);
 
   container.appendChild(header);
   container.appendChild(body);
 
   applyClockFaceClass(container, face);
+  // Show correct body for initial face
+  const updateFaceVisibility = (f) => {
+    if (f === 'analog') {
+      analogEl.style.display = '';
+      timeEl.style.display = 'none';
+    } else {
+      analogEl.style.display = 'none';
+      timeEl.style.display = '';
+    }
+  };
+  updateFaceVisibility(face);
 
   // Drag handlers
   header.addEventListener('mousedown', (e) => {
@@ -336,21 +406,68 @@ function openClockUI() {
     clockUiTimerId = null;
     container.remove();
     clockUiEl = null;
+    setClockUiOpenState(false);
   });
   select.addEventListener('change', () => {
     const val = select.value;
     setStoredClockFace(val);
     applyClockFaceClass(container, val);
+    updateFaceVisibility(val);
+    // Ensure updates resume after selection and render immediately
+    startClockUpdates();
+    if (val === 'analog') updateAnalog();
+    else timeEl.textContent = formatClockTime();
   });
 
+  // Pause clock updates while interacting with the dropdown to avoid it closing
+  const stopClockUpdates = () => {
+    if (clockUiTimerId) {
+      clearInterval(clockUiTimerId);
+      clockUiTimerId = null;
+    }
+  };
+  const startClockUpdates = () => {
+    if (!clockUiTimerId) {
+      clockUiTimerId = setInterval(() => {
+        timeEl.textContent = formatClockTime();
+      }, 1000);
+    }
+  };
+  select.addEventListener('focus', stopClockUpdates);
+  select.addEventListener('mousedown', stopClockUpdates);
+  select.addEventListener('blur', startClockUpdates);
+
   // Start timer
+  const updateAnalog = () => {
+    const now = new Date();
+    const seconds = now.getSeconds();
+    const minutes = now.getMinutes();
+    const hours = now.getHours() % 12 + minutes / 60;
+    const secAngle = seconds * 6; // 360/60
+    const minAngle = (minutes + seconds / 60) * 6;
+    const hourAngle = hours * 30; // 360/12
+    const root = analogEl.querySelector('svg');
+    if (root) {
+      const h = root.querySelector('#hourHand');
+      const m = root.querySelector('#minuteHand');
+      const s = root.querySelector('#secondHand');
+      if (h) h.setAttribute('transform', `rotate(${hourAngle} 50 50)`);
+      if (m) m.setAttribute('transform', `rotate(${minAngle} 50 50)`);
+      if (s) s.setAttribute('transform', `rotate(${secAngle} 50 50)`);
+    }
+  };
+
   if (clockUiTimerId) clearInterval(clockUiTimerId);
   clockUiTimerId = setInterval(() => {
-    timeEl.textContent = formatClockTime();
+    if (select.value === 'analog') updateAnalog();
+    else timeEl.textContent = formatClockTime();
   }, 1000);
+  // Do an immediate render
+  if (select.value === 'analog') updateAnalog();
 
   document.body.appendChild(container);
   clockUiEl = container;
+  setClockUiOpenState(true);
 }
 // Permission help helper
 function showPermissionHelp(permissionName) {
@@ -834,8 +951,17 @@ function setupCommandInput() {
   setTimeout(() => commandInput.focus(), 0);
   setTimeout(() => commandInput.focus(), 100);
   
-  // Refocus on click anywhere in the document
-  document.addEventListener('click', () => {
+  // Refocus on click anywhere in the document, except when interacting with focusable UI
+  document.addEventListener('click', (e) => {
+    const target = e.target;
+    // Don't steal focus from floating clock/settings or other inputs/selects/buttons
+    if (target && (
+      target.closest('.floating-clock') ||
+      target.closest('.settings-overlay') ||
+      target.closest('select, input, textarea, button, [contenteditable="true"]')
+    )) {
+      return;
+    }
     const activeCommandLine = document.querySelector('.command-line:last-of-type');
     if (activeCommandLine) {
       const input = activeCommandLine.querySelector('input');
@@ -2132,6 +2258,23 @@ function init() {
     const input = document.getElementById('commandInput');
     if (input) input.focus();
   }, 100);
+  
+  // Restore clock UI open state if it was open last time
+  try {
+    const localOpen = (() => {
+      try { return localStorage.getItem('clockUiOpen') === '1'; } catch (_) { return false; }
+    })();
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.get('clockUiOpen', (data) => {
+        const wasOpen = (data && typeof data.clockUiOpen !== 'undefined') ? !!data.clockUiOpen : localOpen;
+        if (wasOpen) {
+          openClockUI();
+        }
+      });
+    } else if (localOpen) {
+      openClockUI();
+    }
+  } catch (_) {}
   
   // Refocus terminal when page becomes visible again (after opening a new tab)
   document.addEventListener('visibilitychange', () => {

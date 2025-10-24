@@ -4,6 +4,15 @@
   box-sizing: border-box;
 }
 
+@font-face {
+  font-family: 'Bitcount Grid Single';
+  src: url('../fonts/BitcountGridSingle.woff2') format('woff2'),
+       url('../fonts/BitcountGridSingle.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 body {
   font-family: 'Consolas', 'Courier New', monospace;
   background: #000;
@@ -232,7 +241,15 @@ body {
 .clock-face-lcd .floating-clock-time {
   color: #10ff58;
   text-shadow: 0 0 6px rgba(16,255,88,0.5);
-  font-family: 'Courier New', Courier, monospace;
+  font-family: 'Bitcount Grid Single', 'Courier New', Courier, monospace;
+  letter-spacing: 1px;
+}
+
+.clock-face-lcd-red .floating-clock-time {
+  color: #ff3b30;
+  text-shadow: 0 0 6px rgba(255, 59, 48, 0.5);
+  font-family: 'Bitcount Grid Single', 'Courier New', Courier, monospace;
+  letter-spacing: 1px;
 }
 
 .clock-face-pixel .floating-clock-time {
@@ -247,6 +264,8 @@ body {
   text-shadow: 0 0 8px rgba(143,214,148,0.6);
   font-family: 'Courier New', Courier, monospace;
 }
+
+
 
 /* Mobile View */
 @media (max-width: 768px) {

@@ -1,27 +1,41 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Extension Popup</title>
-    <link rel="stylesheet" href="styles/popup.css" />
-  </head>
-  <body>
-    <div class="popup-container">
-      <div class="terminal-window">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Extension Popup</title>
+  <link rel="stylesheet" href="styles/popup.css" />
+</head>
+<body>
+  <div class="popup-wrapper">
+    <div class="popup-container" role="dialog" aria-label="Terminal popup">
+      <div class="terminal-window" style="display:flex;flex-direction:column;height:100%;">
         <div class="terminal-header">
           <div class="terminal-title">Terminal</div>
+
           <div class="terminal-bubble-toggle" title="Show Terminal Bubble">
-            <label class="switch">
-              <input type="checkbox" id="popup-terminal-bubble-toggle">
-              <span class="slider"></span>
+            <label class="switch" aria-label="Toggle bubble">
+              <input id="popup-terminal-bubble-toggle" type="checkbox" />
+              <span class="slider" aria-hidden="true"></span>
             </label>
           </div>
         </div>
-        <div class="terminal" aria-live="polite"></div>
+
+        <!-- Terminal output area -->
+        <div id="terminal" class="terminal" role="log" aria-live="polite" aria-atomic="false">
+          <div id="output" class="command-output">
+            <div class="line">Welcome — type <span style="color:#bfe9c7">help</span> and press Enter.</div>
+          </div>
+        </div>
+
+        <!-- Command input (press Enter to submit) -->
+        <input id="cmd" class="command-line" type="text"
+               placeholder="Type command (e.g. help) and press Enter"
+               aria-label="Command input" autocomplete="off" />
       </div>
     </div>
+  </div>
 
-    <script src="scripts/popup.js"></script>
-  </body>
+  <script src="scripts/popup.js"></script>
+</body>
 </html>

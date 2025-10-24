@@ -674,12 +674,13 @@ function setupCommandInput() {
   // Create a span to display typed text
   const typedText = document.createElement('span');
   typedText.style.whiteSpace = 'pre';
+  typedText.style.position = 'relative';
   commandLine.insertBefore(typedText, cursor);
   
-  // Create span for text after cursor
-  const afterText = document.createElement('span');
-  afterText.style.whiteSpace = 'pre';
-  cursor.parentNode.insertBefore(afterText, cursor.nextSibling);
+  // Make cursor positioned absolutely within the typed text
+  cursor.style.position = 'absolute';
+  cursor.style.left = '0px';
+  cursor.style.bottom = '0';
   
   // Update displayed text and cursor position on input
   commandInput.addEventListener('input', () => {
@@ -727,7 +728,6 @@ function setupCommandInput() {
   });
 }
 
-
 // Updated function to create new command line
 function createNewCommandLine() {
   const terminal = document.querySelector('.terminal');
@@ -745,14 +745,14 @@ function createNewCommandLine() {
   const cursor = document.createElement('span');
   cursor.className = 'cursor';
   cursor.textContent = '_';
+  cursor.style.position = 'absolute';
+  cursor.style.left = '0px';
+  cursor.style.bottom = '0';
   
   // Create typed text span
   const typedText = document.createElement('span');
   typedText.style.whiteSpace = 'pre';
-  
-  // Create after text span
-  const afterText = document.createElement('span');
-  afterText.style.whiteSpace = 'pre';
+  typedText.style.position = 'relative';
   
   // Create input
   const input = document.createElement('input');
@@ -765,7 +765,6 @@ function createNewCommandLine() {
   newCommandLine.appendChild(prompt);
   newCommandLine.appendChild(typedText);
   newCommandLine.appendChild(cursor);
-  newCommandLine.appendChild(afterText);
   newCommandLine.appendChild(input);
   
   // Add to terminal
@@ -777,7 +776,6 @@ function createNewCommandLine() {
   prompt.style.color = promptColor;
   cursor.style.color = promptColor;
   typedText.style.color = commandColor;
-  afterText.style.color = commandColor;
   
   // Setup input handler
   input.addEventListener('input', () => {
@@ -2068,20 +2066,43 @@ function applyBlur(header, bg) {
   if (terminalEl) terminalEl.style.backdropFilter = `blur(${bg}px)`;
 }
 
+
+
+
 // Function to update cursor position based on input caret
 function updateCursorPosition(input, typedText, cursor) {
   const cursorPos = input.selectionStart || 0;
-  const textBeforeCursor = input.value.substring(0, cursorPos);
-  const textAfterCursor = input.value.substring(cursorPos);
+  const fullText = input.value;
   
-  // Update the text before cursor
-  typedText.textContent = textBeforeCursor;
+  // Display all text in typedText
+  typedText.textContent = fullText;
   
-  // Find or get the afterText span (should be right after cursor)
-  let afterText = cursor.nextElementSibling;
-  if (afterText && afterText.tagName === 'SPAN') {
-    afterText.textContent = textAfterCursor;
+  // Calculate cursor position by measuring text width
+  const textBeforeCursor = fullText.substring(0, cursorPos);
+  
+  // Create a temporary span to measure width
+  const measureSpan = document.createElement('span');
+  measureSpan.style.visibility = 'hidden';
+  measureSpan.style.position = 'absolute';
+  measureSpan.style.whiteSpace = 'pre';
+  measureSpan.style.font = window.getComputedStyle(typedText).font;
+  measureSpan.textContent = textBeforeCursor;
+  document.body.appendChild(measureSpan);
+  
+  const textOffset = measureSpan.offsetWidth; // Width of the text before cursor
+  document.body.removeChild(measureSpan);
+  
+  
+  
+  const prompt = typedText.previousElementSibling;
+  let promptWidth = 0;
+  if (prompt && prompt.classList.contains('prompt')) {
+    promptWidth = prompt.offsetWidth;
   }
+  
+  
+  
+  cursor.style.position = 'absolute';
+  cursor.style.left = (promptWidth + textOffset) + 'px';
+  cursor.style.bottom = '0';
 }
-
-

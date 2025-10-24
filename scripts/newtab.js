@@ -828,6 +828,44 @@ function executeCommand(command, commandLine, typedText) {
   // Freeze the current command line
   freezeCommandLine(commandLine, command);
 
+  if (cmd === 'clip') {
+    if (args.length === 0) {
+      displayMessage('Usage: clip copy <text> | clip paste');
+      return;
+    }
+
+    const subcmd = args[0].toLowerCase();
+
+    if (subcmd === 'copy') {
+      // Join rest of args as the message/link to copy
+      const clipContent = args.slice(1).join(' ');
+      if (!clipContent) {
+        displayMessage('Usage: clip copy <message/link>');
+        return;
+      }
+      try {
+        localStorage.setItem('terminal_clipboard', clipContent);
+        displayMessage('Copied to clipboard successfully!');
+      } catch (e) {
+        displayMessage('Failed to copy to clipboard.');
+      }
+      return;
+    }
+
+    if (subcmd === 'paste') {
+      const savedContent = localStorage.getItem('terminal_clipboard');
+      if (savedContent) {
+        displayMessage(savedContent);
+      } else {
+        displayMessage('Clipboard is empty.');
+      }
+      return;
+    }
+
+    displayMessage('Invalid clip command. Use "clip copy <text>" or "clip paste".');
+    return;
+  }
+
   // Command: ls - list content based on current path
   if (cmd === 'ls') {
     // Check current path and list appropriate content

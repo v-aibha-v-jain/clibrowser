@@ -14,6 +14,7 @@ A terminal-style browser extension that replaces your new tab page with a comman
 - 🎨 **Customizable Appearance** - Change colors, background, and blur effects
 - 🔍 **Search Integration** - Direct Google search from the terminal
 - 📖 **Browser History** - Access your browsing history from the terminal
+ - 🕒 **Time & Clock Tools** - Time commands and a draggable clock UI
 
 ## Installation
 
@@ -60,6 +61,17 @@ A terminal-style browser extension that replaces your new tab page with a comman
 | `search <query>` | Search Google for the query                   |
 | `<url>`          | Navigate to URL (auto-detects URLs)           |
 | `<text>`         | Search Google for text                        |
+
+### Time & Clock Commands
+
+| Command       | Description                                      |
+| ------------- | ------------------------------------------------ |
+| `time`        | Show current time (24-hour format)               |
+| `time 24`     | Show time in 24-hour format                      |
+| `time 12`     | Show time in 12-hour format                      |
+| `time full`   | Show full details with date and timezone         |
+| `time live`   | Show a live ticking time (press Ctrl+C to exit)  |
+| `time ui`     | Open a draggable clock UI with selectable faces  |
 
 ### Directory Navigation
 
@@ -201,6 +213,12 @@ Open settings by typing `open settings` in the terminal to customize:
 - **Background Color** - Change the terminal background color
 - **Background Image** - Set a custom background image (URL)
 
+Clock UI (opened via `time ui`):
+
+- Choose between multiple faces (e.g., LCD Green/Red, Pixel, Matrix, Analog)
+- Drag to reposition; position and face are remembered across sessions
+- Use the gear icon in the clock to switch faces
+
 ## Tips
 
 1. **Quick Search**: Just type any text and press Enter to search Google
@@ -208,6 +226,7 @@ Open settings by typing `open settings` in the terminal to customize:
 3. **Command History**: Use Up/Down arrow keys to navigate through previous commands
 4. **Tab Completion**: Use Tab key for auto-completion (coming soon)
 5. **Nested Bookmarks**: Organize bookmarks in folders like `work/projects/web`
+6. **Live Time**: Use `time live` and press Ctrl+C to stop
 
 
 # Contributors 🌟

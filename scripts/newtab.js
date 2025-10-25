@@ -828,6 +828,71 @@ function executeCommand(command, commandLine, typedText) {
   // Freeze the current command line
   freezeCommandLine(commandLine, command);
 
+  // Handle set commands for appearance settings
+  if (cmd === 'set') {
+    if (args.length !== 2) {
+      const output = document.createElement('div');
+      output.className = 'command-output';
+      output.style.color = getComputedStyle(document.documentElement).getPropertyValue('--response-color') || '#ffffff';
+      output.innerHTML = 'Usage: set <setting> <value>\nAvailable settings: bgcolor, textcolor, cmdcolor, responsecolor, promptcolor, bgimage';
+      document.querySelector('.terminal').appendChild(output);
+      createNewCommandLine();
+      return;
+    }
+
+    const [setting, value] = args;
+    const settings = loadSettings();
+    
+    switch(setting.toLowerCase()) {
+      case 'bgcolor':
+        settings.appearance.bgColor = value;
+        break;
+      case 'textcolor':
+        // textColor is the global 'Text Color (All)'. When changed via command,
+        // also update the specific colors so the visible terminal text updates
+        // immediately (command/response/prompt use those specific values).
+        settings.appearance.textColor = value;
+        settings.appearance.commandColor = value;
+        settings.appearance.responseColor = value;
+        settings.appearance.promptColor = value;
+        break;
+      case 'cmdcolor':
+        settings.appearance.commandColor = value;
+        break;
+      case 'responsecolor':
+        settings.appearance.responseColor = value;
+        break;
+      case 'promptcolor':
+        settings.appearance.promptColor = value;
+        break;
+      case 'bgimage':
+        settings.appearance.bgImage = value === 'none' ? null : value;
+        break;
+      default:
+        const output = document.createElement('div');
+        output.className = 'command-output error';
+        output.style.color = getComputedStyle(document.documentElement).getPropertyValue('--response-color') || '#ffffff';
+        output.textContent = `Unknown setting: ${setting}`;
+        document.querySelector('.terminal').appendChild(output);
+        createNewCommandLine();
+        return;
+    }
+    
+    saveSettingsToStorage(settings);
+    applyAppearanceSettings();
+    // If settings modal is open, refresh the form to reflect changes
+    if (window.loadSettingsIntoForm && document.getElementById('settingsOverlay') && document.getElementById('settingsOverlay').classList.contains('active')) {
+      try { window.loadSettingsIntoForm(); } catch (e) { /* ignore */ }
+    }
+    const output = document.createElement('div');
+    output.className = 'command-output';
+    output.style.color = getComputedStyle(document.documentElement).getPropertyValue('--response-color') || '#ffffff';
+    output.textContent = `Updated ${setting} to ${value}`;
+    document.querySelector('.terminal').appendChild(output);
+    createNewCommandLine();
+    return;
+  }
+
   // Command: ls - list content based on current path
   if (cmd === 'ls') {
     // Check current path and list appropriate content

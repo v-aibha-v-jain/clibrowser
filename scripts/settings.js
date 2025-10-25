@@ -31,7 +31,12 @@ function applyAppearanceSettings() {
   
   // Apply colors
   document.body.style.color = app.textColor;
-  document.body.style.backgroundColor = app.bgColor;
+  // Treat explicit 'none' or empty as transparent to allow background image to show
+  if (app.bgColor && String(app.bgColor).toLowerCase() !== 'none') {
+    document.body.style.backgroundColor = app.bgColor;
+  } else {
+    document.body.style.backgroundColor = 'transparent';
+  }
   
   // Apply command color to all typed text spans
   const commandLines = document.querySelectorAll('.command-line span:not(.prompt):not(.cursor)');
@@ -51,10 +56,12 @@ function applyAppearanceSettings() {
   
   // Apply background image
   if (app.bgImage) {
-    document.body.style.backgroundImage = `url(${app.bgImage})`;
+    // Wrap URL in quotes to handle special characters and spaces
+    document.body.style.backgroundImage = `url("${app.bgImage}")`;
     document.body.style.backgroundSize = 'cover';
     document.body.style.backgroundPosition = 'center';
     document.body.style.backgroundAttachment = 'fixed';
+    document.body.style.backgroundRepeat = 'no-repeat';
   } else {
     document.body.style.backgroundImage = 'none';
   }
@@ -141,19 +148,41 @@ function syncColorInputs(colorInput, hexInput) {
   });
 }
 
+// Preview current form values without persisting to storage
+function previewAppearanceFromForm() {
+  const textColorAll = document.getElementById('textColor').value || document.getElementById('textColorHex').value;
+  const commandColor = document.getElementById('commandColor').value || document.getElementById('commandColorHex').value || textColorAll;
+  const responseColor = document.getElementById('responseColor').value || document.getElementById('responseColorHex').value || textColorAll;
+  const promptColor = document.getElementById('promptColor').value || document.getElementById('promptColorHex').value || textColorAll;
+  const bgColorVal = document.getElementById('bgColor').value || document.getElementById('bgColorHex').value || '';
+
+  // Apply directly to document for instant preview
+  document.body.style.color = textColorAll;
+  if (bgColorVal && String(bgColorVal).toLowerCase() !== 'none') {
+    document.body.style.backgroundColor = bgColorVal;
+  } else {
+    document.body.style.backgroundColor = 'transparent';
+  }
+
+  document.documentElement.style.setProperty('--text-color', textColorAll);
+  document.documentElement.style.setProperty('--command-color', commandColor);
+  document.documentElement.style.setProperty('--response-color', responseColor);
+  document.documentElement.style.setProperty('--prompt-color', promptColor);
+}
+
 // Save settings
 function saveSettings() {
   const settings = loadSettings();
   
-  const textColorAll = document.getElementById('textColor').value;
+  const textColorAll = document.getElementById('textColor').value || document.getElementById('textColorHex').value;
   
   // Save appearance
   settings.appearance = {
     textColor: textColorAll,
-    commandColor: document.getElementById('commandColor').value || textColorAll,
-    responseColor: document.getElementById('responseColor').value || textColorAll,
-    promptColor: document.getElementById('promptColor').value || textColorAll,
-    bgColor: document.getElementById('bgColor').value,
+    commandColor: document.getElementById('commandColor').value || document.getElementById('commandColorHex').value || textColorAll,
+    responseColor: document.getElementById('responseColor').value || document.getElementById('responseColorHex').value || textColorAll,
+    promptColor: document.getElementById('promptColor').value || document.getElementById('promptColorHex').value || textColorAll,
+    bgColor: document.getElementById('bgColor').value || document.getElementById('bgColorHex').value,
     bgImage: settings.appearance.bgImage // Keep existing image
   };
   
@@ -258,6 +287,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // Background image
   document.getElementById('bgImage').addEventListener('change', handleBgImageUpload);
   document.getElementById('removeBgImage').addEventListener('click', removeBgImage);
+  
+  // Live preview when changing color inputs
+  ['textColor','commandColor','responseColor','promptColor','bgColor'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', previewAppearanceFromForm);
+  });
+  ['textColorHex','commandColorHex','responseColorHex','promptColorHex','bgColorHex'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', previewAppearanceFromForm);
+  });
   
   // Save/Reset buttons
   document.getElementById('saveSettings').addEventListener('click', saveSettings);

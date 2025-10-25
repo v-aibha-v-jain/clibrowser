@@ -11,15 +11,7 @@
 </head>
 
 <body>
-  <script>
-    // Ensure the input gets focus immediately on page load
-    window.addEventListener("load", function () {
-      setTimeout(function () {
-        const input = document.getElementById("commandInput");
-        if (input) input.focus();
-      }, 0);
-    });
-  </script>
+  <!-- moved inline focus logic to an external script to comply with extension CSP -->
   <div class="terminal-header">
     <div class="terminal-title">
       <div class="terminal-icon"><i class="fa-solid fa-terminal"></i></div>
@@ -36,10 +28,10 @@
     </div>
   </div>
   <div class="terminal">
-    <div class="command-line">
+      <div class="command-line">
       <span class="prompt">browser&gt;</span>
       <span class="cursor">_</span>
-      <input type="text" id="commandInput" spellcheck="false" autocomplete="off" autofocus />
+      <input type="text" id="commandInput" spellcheck="false" autocomplete="off" />
     </div>
   </div>
 
@@ -148,8 +140,9 @@
     </div>
   </div>
 
-  <script src="scripts/newtab.js"></script>
   <script src="scripts/settings.js"></script>
+  <script src="scripts/init-focus.js"></script>
+  <script src="scripts/newtab.js"></script>
 </body>
 
 </html>

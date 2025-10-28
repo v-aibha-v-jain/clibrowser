@@ -1,155 +1,299 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CLI Tab</title>
+    <link rel="stylesheet" href="styles/newtab.css" />
+    <link rel="stylesheet" href="styles/settings.css" />
+    <link rel="stylesheet" href="styles/help.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CLI Tab</title>
-  <link rel="stylesheet" href="styles/newtab.css" />
-  <link rel="stylesheet" href="styles/settings.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-</head>
-
-<body>
-  <script>
-    // Ensure the input gets focus immediately on page load
-    window.addEventListener("load", function () {
-      setTimeout(function () {
-        const input = document.getElementById("commandInput");
-        if (input) input.focus();
-      }, 0);
-    });
-  </script>
-  <div class="terminal-header">
-    <div class="terminal-title">
-      <div class="terminal-icon"><i class="fa-solid fa-terminal"></i></div>
-      <div class="title-text">Terminal</div>
-    </div>
-    <div class="terminal-controls">
-      <a href="https://github.com/v-aibha-v-jain/clibrowser" target="_blank" class="github-link" title="View on GitHub">
-        <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
-          <path fill-rule="evenodd"
-            d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z">
-          </path>
-        </svg>
-      </a>
-    </div>
-  </div>
-  <div class="terminal">
-    <div class="command-line">
-      <span class="prompt">browser&gt;</span>
-      <span class="cursor">_</span>
-      <input type="text" id="commandInput" spellcheck="false" autocomplete="off" autofocus />
-    </div>
-  </div>
-
-  <!-- Settings Modal -->
-  <div class="settings-overlay" id="settingsOverlay">
-    <div class="settings-modal">
-      <div class="settings-header">
-        <h2>⚙️ Settings</h2>
-        <button class="settings-close" id="closeSettings">&times;</button>
+  <body>
+    <script>
+      // Ensure the input gets focus immediately on page load
+      window.addEventListener("load", function () {
+        setTimeout(function () {
+          const input = document.getElementById("commandInput");
+          if (input) input.focus();
+        }, 0);
+      });
+    </script>
+    <div class="terminal-header">
+      <div class="terminal-title">
+        <div class="terminal-icon"><i class="fa-solid fa-terminal"></i></div>
+        <div class="title-text">Terminal</div>
       </div>
-
-      <div class="settings-tabs">
-        <button class="settings-tab active" data-tab="appearance" id="appearance-tab">
-          Appearance
+      <div class="terminal-controls">
+        <button class="help-button" title="Help">
+          <i class="fa-solid fa-circle-question"></i>
         </button>
-        <button class="settings-tab" data-tab="preferences" id="preferences-tab">
-          Preferences
-        </button>
+        <a
+          href="https://github.com/v-aibha-v-jain/clibrowser"
+          target="_blank"
+          class="github-link"
+          title="View on GitHub"
+        >
+          <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+            <path
+              fill-rule="evenodd"
+              d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+            ></path>
+          </svg>
+        </a>
       </div>
+    </div>
+    <div class="terminal">
+      <div class="command-line">
+        <span class="prompt">browser&gt;</span>
+        <span class="cursor">_</span>
+        <input
+          type="text"
+          id="commandInput"
+          spellcheck="false"
+          autocomplete="off"
+          autofocus
+        />
+      </div>
+    </div>
 
-      <div class="settings-content">
-        <!-- Appearance Panel -->
-        <div class="settings-panel active" id="appearance-panel">
-          <div class="form-group">
-            <label>Text Color (All)</label>
-            <div class="color-input-wrapper">
-              <input type="color" id="textColor" value="#ffffff" />
-              <input type="text" id="textColorHex" value="#ffffff" placeholder="#ffffff" />
+    <!-- Help Commands Modal -->
+    <div class="settings-overlay" id="helpOverlay">
+      <div class="settings-modal">
+        <div class="settings-header">
+          <h2>💡 Help Commands</h2>
+          <button class="settings-close" id="closeHelp">&times;</button>
+        </div>
+
+        <div class="settings-content">
+          <div class="settings-panel active" id="help-panel">
+            <div class="form-group">
+                        <pre class="help-text">
+          help                      - Show this help message
+          open &lt;url&gt;                - Open a URL in a new tab
+          open settings             - Open settings modal
+
+          cd fav                    - List all favorites
+          cd fav &lt;index&gt;            - Open favorite by index number
+          cd fav &lt;name&gt;             - Open favorite by name (searches title)
+
+          mkfv                      - Create a new favorite (interactive)
+          mkfv "name" "url"         - Create a favorite directly
+          rmfv &lt;index&gt;|&lt;name&gt;       - Remove a favorite by index or name
+
+          cd notes                  - List all notes
+          create note "text"        - Create a note
+          delete note &lt;index&gt;        - Delete a note by index
+
+          cd bm                     - List all custom bookmarks
+          cd bm &lt;folder&gt;           - List bookmarks in a specific folder
+          cd bm &lt;path&gt;             - List bookmarks in nested folder (use folder1/sub1)
+          cd bm &lt;index&gt;            - Open bookmark by index number
+          cd bm &lt;name&gt;             - Open bookmark by name
+          cd bm &lt;folder&gt; &lt;index&gt;    - Open bookmark by index in folder
+          cd bm &lt;folder&gt; &lt;name&gt;     - Open bookmark by name in folder
+          cd bm &lt;path&gt; &lt;index|name&gt; - Open bookmark in nested folder (use folder1/sub1)
+
+          cd flow &lt;id&gt;              - List all URLs in a flow
+          --flow &lt;id&gt;               - Open all URLs in a flow in new tabs
+          create flow &lt;id&gt;          - Create a new flow (enter URLs, 'exit' to finish)
+          delete flow &lt;id&gt;          - Delete a flow
+
+          cd history                - List browsing history (page 1)
+          cd history &lt;page&gt;         - List browsing history (specific page)
+
+          mkbm "name" "url"         - Create a bookmark (inside bookmark directory)
+          mkbm                      - Create a bookmark interactively (inside bookmark directory)
+          rmbm &lt;name&gt;               - Remove a bookmark (inside bookmark directory)
+          rmbm -&lt;folder&gt; &lt;name&gt;     - Remove a bookmark from a specific folder
+
+          search &lt;query&gt;            - Search Google for the query
+
+          &lt;url&gt;                     - Navigate to URL (auto-detects URLs)
+          &lt;text&gt;                    - Search Google for text
+
+          Settings:
+          Use "open settings" to customize terminal appearance.
+                    </pre
+                        >
             </div>
           </div>
+        </div>
 
-          <div class="form-group">
-            <label>Command Text Color</label>
-            <div class="color-input-wrapper">
-              <input type="color" id="commandColor" value="#ffffff" />
-              <input type="text" id="commandColorHex" value="#ffffff" placeholder="#ffffff" />
-            </div>
-          </div>
+        <div class="settings-footer">
+          <button class="btn-save" id="closeHelpFooter">Close</button>
+        </div>
+      </div>
+    </div>
 
-          <div class="form-group">
-            <label>Response Text Color</label>
-            <div class="color-input-wrapper">
-              <input type="color" id="responseColor" value="#ffffff" />
-              <input type="text" id="responseColorHex" value="#ffffff" placeholder="#ffffff" />
-            </div>
-          </div>
+    <!-- Settings Modal -->
+    <div class="settings-overlay" id="settingsOverlay">
+      <div class="settings-modal">
+        <div class="settings-header">
+          <h2>⚙️ Settings</h2>
+          <button class="settings-close" id="closeSettings">&times;</button>
+        </div>
 
-          <div class="form-group">
-            <label>Prompt "browser>" Color</label>
-            <div class="color-input-wrapper">
-              <input type="color" id="promptColor" value="#ffffff" />
-              <input type="text" id="promptColorHex" value="#ffffff" placeholder="#ffffff" />
-            </div>
-          </div>
+        <div class="settings-tabs">
+          <button
+            class="settings-tab active"
+            data-tab="appearance"
+            id="appearance-tab"
+          >
+            Appearance
+          </button>
+          <button
+            class="settings-tab"
+            data-tab="preferences"
+            id="preferences-tab"
+          >
+            Preferences
+          </button>
+        </div>
 
-          <div class="form-group">
-            <label>Background Color</label>
-            <div class="color-input-wrapper">
-              <input type="color" id="bgColor" value="#000000" />
-              <input type="text" id="bgColorHex" value="#000000" placeholder="#000000" />
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="headerBlur">Header Blur (<span id="headerBlurValue">5</span>px)</label>
-            <input type="range" id="headerBlur" min="0" max="20" value="5" step="1">
-          </div>
-          <div class="form-group">
-            <label for="backgroundBlur">Background Blur (<span id="backgroundBlurValue">0</span>px)</label>
-            <input type="range" id="backgroundBlur" min="0" max="30" value="0" step="1">
-          </div>
-
-          <div class="form-group">
-            <label>Background Image</label>
-            <div class="file-upload">
-              <label for="bgImage" class="file-upload-btn">
-                📁 Choose Image
-              </label>
-              <input type="file" id="bgImage" accept="image/*" />
-              <div class="file-preview" id="bgImagePreview">
-                No image selected
+        <div class="settings-content">
+          <!-- Appearance Panel -->
+          <div class="settings-panel active" id="appearance-panel">
+            <div class="form-group">
+              <label>Text Color (All)</label>
+              <div class="color-input-wrapper">
+                <input type="color" id="textColor" value="#ffffff" />
+                <input
+                  type="text"
+                  id="textColorHex"
+                  value="#ffffff"
+                  placeholder="#ffffff"
+                />
               </div>
-              <button class="btn-reset" id="removeBgImage">
-                Remove Background Image
-              </button>
+            </div>
+
+            <div class="form-group">
+              <label>Command Text Color</label>
+              <div class="color-input-wrapper">
+                <input type="color" id="commandColor" value="#ffffff" />
+                <input
+                  type="text"
+                  id="commandColorHex"
+                  value="#ffffff"
+                  placeholder="#ffffff"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Response Text Color</label>
+              <div class="color-input-wrapper">
+                <input type="color" id="responseColor" value="#ffffff" />
+                <input
+                  type="text"
+                  id="responseColorHex"
+                  value="#ffffff"
+                  placeholder="#ffffff"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Prompt "browser>" Color</label>
+              <div class="color-input-wrapper">
+                <input type="color" id="promptColor" value="#ffffff" />
+                <input
+                  type="text"
+                  id="promptColorHex"
+                  value="#ffffff"
+                  placeholder="#ffffff"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Background Color</label>
+              <div class="color-input-wrapper">
+                <input type="color" id="bgColor" value="#000000" />
+                <input
+                  type="text"
+                  id="bgColorHex"
+                  value="#000000"
+                  placeholder="#000000"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="headerBlur"
+                >Header Blur (<span id="headerBlurValue">5</span>px)</label
+              >
+              <input
+                type="range"
+                id="headerBlur"
+                min="0"
+                max="20"
+                value="5"
+                step="1"
+              />
+            </div>
+            <div class="form-group">
+              <label for="backgroundBlur"
+                >Background Blur (<span id="backgroundBlurValue">0</span
+                >px)</label
+              >
+              <input
+                type="range"
+                id="backgroundBlur"
+                min="0"
+                max="30"
+                value="0"
+                step="1"
+              />
+            </div>
+
+            <div class="form-group">
+              <label>Background Image</label>
+              <div class="file-upload">
+                <label for="bgImage" class="file-upload-btn">
+                  📁 Choose Image
+                </label>
+                <input type="file" id="bgImage" accept="image/*" />
+                <div class="file-preview" id="bgImagePreview">
+                  No image selected
+                </div>
+                <button class="btn-reset" id="removeBgImage">
+                  Remove Background Image
+                </button>
+              </div>
             </div>
           </div>
-
-          
-        </div>
-        <div class="settings-panel" id="preferences-panel" style="display:none;">
-          <label class="switch-label" for="show-terminal-bubble-toggle">
-            Show Terminal Bubble
-            <label class="switch">
-              <input type="checkbox" id="show-terminal-bubble-toggle">
-              <span class="slider"></span>
+          <div
+            class="settings-panel"
+            id="preferences-panel"
+            style="display: none"
+          >
+            <label class="switch-label" for="show-terminal-bubble-toggle">
+              Show Terminal Bubble
+              <label class="switch">
+                <input type="checkbox" id="show-terminal-bubble-toggle" />
+                <span class="slider"></span>
+              </label>
             </label>
-          </label>
+          </div>
         </div>
-      </div>
 
-      <div class="settings-footer">
-        <button class="btn-reset" id="resetSettings">Reset to Default</button>
-        <button class="btn-save" id="saveSettings">Save Changes</button>
+        <div class="settings-footer">
+          <button class="btn-reset" id="resetSettings">Reset to Default</button>
+          <button class="btn-save" id="saveSettings">Save Changes</button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <script src="scripts/newtab.js"></script>
-  <script src="scripts/settings.js"></script>
-</body>
-
+    <script src="scripts/newtab.js"></script>
+    <script src="scripts/settings.js"></script>
+    <script src="scripts/help.js"></script>
+  </body>
 </html>

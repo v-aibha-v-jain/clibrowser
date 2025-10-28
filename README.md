@@ -218,7 +218,7 @@ Thank you to all the amazing people who have contributed to CLI Browser!
 
 <div align="center">
 
-[![Contributors](https://contrib.rocks/image?repo=v-aibha-v-jain/clibrowser)](https://github.com/v-aibha-v-jain/clibrowser/graphs/contributors)
+[![Contributors](https://contrib.rocks/image?repo=v-aibha-v-jain/clibrowser)](https://github.com/v-aibha-v-jain/clibrowser/graphs/contributors) 
 
 </div>
 

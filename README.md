@@ -218,7 +218,46 @@ Thank you to all the amazing people who have contributed to CLI Browser!
 
 <div align="center">
 
-[![Contributors](https://contrib.rocks/image?repo=v-aibha-v-jain/clibrowser)](https://github.com/v-aibha-v-jain/clibrowser/graphs/contributors) 
+<a href="https://github.com/v-aibha-v-jain" target="_blank">
+  <img
+    src="https://github.com/v-aibha-v-jain.png"
+    alt="v-aibha-v-jain's GitHub Profile"
+    width="100"
+    style="border-radius: 50%; max-width: 100%; height: auto; display: inline-block; margin: 0 5px;"
+  />
+</a>
+<a href="https://github.com/keikurono7" target="_blank">
+  <img
+    src="https://github.com/keikurono7.png"
+    alt="keikurono7's GitHub Profile"
+    width="100"
+    style="border-radius: 50%; max-width: 100%; height: auto; display: inline-block; margin: 0 5px;"
+  />
+</a>
+<a href="https://github.com/vamsi-op" target="_blank">
+  <img
+    src="https://github.com/vamsi-op.png"
+    alt="vamsi-op's GitHub Profile"
+    width="100"
+    style="border-radius: 50%; max-width: 100%; height: auto; display: inline-block; margin: 0 5px;"
+  />
+</a>
+<a href="https://github.com/rafia-codes" target="_blank">
+  <img
+    src="https://github.com/rafia-codes.png"
+    alt="rafia-codes's GitHub Profile"
+    width="100"
+    style="border-radius: 50%; max-width: 100%; height: auto; display: inline-block; margin: 0 5px;"
+  />
+</a>
+<a href="https://github.com/tusharv" target="_blank">
+  <img
+    src="https://github.com/tusharv.png"
+    alt="tusharv's GitHub Profile"
+    width="100"
+    style="border-radius: 50%; max-width: 100%; height: auto; display: inline-block; margin: 0 5px;"
+  />
+</a>
 
 </div>
 

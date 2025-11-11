@@ -940,7 +940,7 @@ function handleChangeDirectory(args) {
   displayMessage(`Unknown path: ${targetPath}`);
 }
 
-// Command input functionality
+// updated- Command input functionality
 function setupCommandInput() {
   const commandInput = document.getElementById('commandInput');
   const commandLine = document.querySelector('.command-line');
@@ -973,11 +973,28 @@ function setupCommandInput() {
   // Create a span to display typed text
   const typedText = document.createElement('span');
   typedText.style.whiteSpace = 'pre';
+  typedText.style.position = 'relative';
   commandLine.insertBefore(typedText, cursor);
   
-  // Update displayed text and cursor position
+  // Make cursor positioned absolutely within the typed text
+  cursor.style.position = 'absolute';
+  cursor.style.left = '0px';
+  cursor.style.bottom = '0';
+  
+  // Update displayed text and cursor position on input
   commandInput.addEventListener('input', () => {
-    typedText.textContent = commandInput.value;
+    updateCursorPosition(commandInput, typedText, cursor);
+  });
+  
+  // Update cursor position on arrow key navigation and clicks
+  commandInput.addEventListener('keyup', (e) => {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'Home' || e.key === 'End') {
+      updateCursorPosition(commandInput, typedText, cursor);
+    }
+  });
+  
+  commandInput.addEventListener('click', () => {
+    updateCursorPosition(commandInput, typedText, cursor);
   });
   
   commandInput.addEventListener('keydown', (e) => {
@@ -993,23 +1010,24 @@ function setupCommandInput() {
       if (historyIndex > 0) {
         historyIndex--;
         commandInput.value = commandHistory[historyIndex];
-        typedText.textContent = commandInput.value;
+        updateCursorPosition(commandInput, typedText, cursor);
       }
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
       if (historyIndex < commandHistory.length - 1) {
         historyIndex++;
         commandInput.value = commandHistory[historyIndex];
-        typedText.textContent = commandInput.value;
+        updateCursorPosition(commandInput, typedText, cursor);
       } else if (historyIndex === commandHistory.length - 1) {
         historyIndex = commandHistory.length;
         commandInput.value = '';
-        typedText.textContent = '';
+        updateCursorPosition(commandInput, typedText, cursor);
       }
     }
   });
 }
 
+// Updated function to create new command line
 function createNewCommandLine() {
   const terminal = document.querySelector('.terminal');
   
@@ -1026,10 +1044,14 @@ function createNewCommandLine() {
   const cursor = document.createElement('span');
   cursor.className = 'cursor';
   cursor.textContent = '_';
+  cursor.style.position = 'absolute';
+  cursor.style.left = '0px';
+  cursor.style.bottom = '0';
   
   // Create typed text span
   const typedText = document.createElement('span');
   typedText.style.whiteSpace = 'pre';
+  typedText.style.position = 'relative';
   
   // Create input
   const input = document.createElement('input');
@@ -1056,7 +1078,18 @@ function createNewCommandLine() {
   
   // Setup input handler
   input.addEventListener('input', () => {
-    typedText.textContent = input.value;
+    updateCursorPosition(input, typedText, cursor);
+  });
+  
+  // Update cursor position on arrow key navigation
+  input.addEventListener('keyup', (e) => {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'Home' || e.key === 'End') {
+      updateCursorPosition(input, typedText, cursor);
+    }
+  });
+  
+  input.addEventListener('click', () => {
+    updateCursorPosition(input, typedText, cursor);
   });
   
   input.addEventListener('keydown', (e) => {
@@ -1072,18 +1105,18 @@ function createNewCommandLine() {
       if (historyIndex > 0) {
         historyIndex--;
         input.value = commandHistory[historyIndex];
-        typedText.textContent = input.value;
+        updateCursorPosition(input, typedText, cursor);
       }
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
       if (historyIndex < commandHistory.length - 1) {
         historyIndex++;
         input.value = commandHistory[historyIndex];
-        typedText.textContent = input.value;
+        updateCursorPosition(input, typedText, cursor);
       } else if (historyIndex === commandHistory.length - 1) {
         historyIndex = commandHistory.length;
         input.value = '';
-        typedText.textContent = '';
+        updateCursorPosition(input, typedText, cursor);
       }
     }
   });
@@ -1094,6 +1127,7 @@ function createNewCommandLine() {
   // Scroll to bottom
   window.scrollTo(0, document.body.scrollHeight);
 }
+
 
 // Clear terminal screen but preserve command history
 function clearTerminal() {
@@ -2512,3 +2546,42 @@ function applyBlur(header, bg) {
 }
 
 
+
+
+// Function to update cursor position based on input caret
+function updateCursorPosition(input, typedText, cursor) {
+  const cursorPos = input.selectionStart || 0;
+  const fullText = input.value;
+  
+  // Display all text in typedText
+  typedText.textContent = fullText;
+  
+  // Calculate cursor position by measuring text width
+  const textBeforeCursor = fullText.substring(0, cursorPos);
+  
+  // Create a temporary span to measure width
+  const measureSpan = document.createElement('span');
+  measureSpan.style.visibility = 'hidden';
+  measureSpan.style.position = 'absolute';
+  measureSpan.style.whiteSpace = 'pre';
+  measureSpan.style.font = window.getComputedStyle(typedText).font;
+  measureSpan.textContent = textBeforeCursor;
+  document.body.appendChild(measureSpan);
+  
+  const textOffset = measureSpan.offsetWidth; // Width of the text before cursor
+  document.body.removeChild(measureSpan);
+  
+  
+  
+  const prompt = typedText.previousElementSibling;
+  let promptWidth = 0;
+  if (prompt && prompt.classList.contains('prompt')) {
+    promptWidth = prompt.offsetWidth;
+  }
+  
+  
+  
+  cursor.style.position = 'absolute';
+  cursor.style.left = (promptWidth + textOffset) + 'px';
+  cursor.style.bottom = '0';
+}

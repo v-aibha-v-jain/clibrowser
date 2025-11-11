@@ -180,6 +180,296 @@ let currentTerminalPathDisplay = "browser"; // For display purposes
 let inputQueue = [];
 let isAwaitingInput = false;
 
+// Live time state
+let isLiveTimeRunning = false;
+let liveTimeTimerId = null;
+let liveTimeKeydownHandler = null;
+
+// Floating Clock UI state
+let clockUiEl = null;
+let clockUiTimerId = null;
+let clockUiDragging = false;
+let clockUiDragOffsetX = 0;
+let clockUiDragOffsetY = 0;
+
+function getStoredClockFace() {
+  try {
+    const v = localStorage.getItem('clockFace') || 'lcd';
+    // Map legacy/removed styles to closest options
+    if (v === 'led' || v === 'matrix') return 'lcd';
+    return v;
+  } catch (_) {
+    return 'lcd';
+  }
+}
+
+function setStoredClockFace(face) {
+  try { localStorage.setItem('clockFace', face); } catch (_) { }
+}
+
+function setClockUiOpenState(isOpen) {
+  try { localStorage.setItem('clockUiOpen', isOpen ? '1' : '0'); } catch (_) { }
+  try {
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.set({ clockUiOpen: !!isOpen });
+    }
+  } catch (_) { }
+}
+
+function getStoredClockPosition() {
+  try {
+    const raw = localStorage.getItem('clockUiPosition');
+    return raw ? JSON.parse(raw) : { left: 20, top: 60 };
+  } catch (_) {
+    return { left: 20, top: 60 };
+  }
+}
+
+function setStoredClockPosition(pos) {
+  try { localStorage.setItem('clockUiPosition', JSON.stringify(pos)); } catch (_) { }
+  // Also persist in chrome.storage.local when available
+  try {
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.set({ clockUiPosition: pos });
+    }
+  } catch (_) { }
+}
+
+function formatClockTime() {
+  const now = new Date();
+  const pad2 = (n) => String(n).padStart(2, '0');
+  return `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
+}
+
+function applyClockFaceClass(container, face) {
+  container.classList.remove('clock-face-lcd', 'clock-face-lcd-red', 'clock-face-pixel', 'clock-face-matrix', 'clock-face-analog', 'clock-face-led');
+  if (face === 'pixel') container.classList.add('clock-face-pixel');
+  else if (face === 'matrix') container.classList.add('clock-face-matrix');
+  else if (face === 'analog') container.classList.add('clock-face-analog');
+  else if (face === 'lcd-red') container.classList.add('clock-face-lcd-red');
+  else container.classList.add('clock-face-lcd');
+}
+
+function openClockUI() {
+  // If already open, bring to front and return
+  if (clockUiEl) {
+    clockUiEl.style.display = 'block';
+    clockUiEl.style.zIndex = '9999';
+    setClockUiOpenState(true);
+    return;
+  }
+
+  const pos = getStoredClockPosition();
+  const face = getStoredClockFace();
+
+  const container = document.createElement('div');
+  container.className = 'floating-clock clock-face-lcd';
+  container.style.position = 'fixed';
+  container.style.left = `${pos.left}px`;
+  container.style.top = `${pos.top}px`;
+  container.style.zIndex = '9999';
+
+  // If a saved position exists in chrome.storage.local, prefer it
+  try {
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.get('clockUiPosition', (data) => {
+        const saved = data && data.clockUiPosition;
+        if (saved && typeof saved.left === 'number' && typeof saved.top === 'number') {
+          let left = saved.left;
+          let top = saved.top;
+          // Clamp within viewport
+          left = Math.max(0, Math.min(window.innerWidth - container.offsetWidth, left));
+          top = Math.max(0, Math.min(window.innerHeight - container.offsetHeight, top));
+          container.style.left = `${left}px`;
+          container.style.top = `${top}px`;
+        }
+      });
+    }
+  } catch (_) { }
+
+  const header = document.createElement('div');
+  header.className = 'floating-clock-header';
+  header.textContent = 'Clock';
+
+  const actions = document.createElement('div');
+  actions.className = 'floating-clock-actions';
+  const gearBtn = document.createElement('button');
+  gearBtn.className = 'floating-clock-gear';
+  gearBtn.title = 'Settings';
+  gearBtn.textContent = '⚙';
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'floating-clock-close';
+  closeBtn.title = 'Close';
+  closeBtn.textContent = '×';
+  actions.appendChild(gearBtn);
+  actions.appendChild(closeBtn);
+  header.appendChild(actions);
+
+  const body = document.createElement('div');
+  body.className = 'floating-clock-body';
+  const timeEl = document.createElement('div');
+  timeEl.className = 'floating-clock-time';
+  timeEl.textContent = formatClockTime();
+  // Analog clock container (hidden by default)
+  const analogEl = document.createElement('div');
+  analogEl.className = 'floating-clock-analog';
+  analogEl.style.display = 'none';
+  analogEl.innerHTML = `
+    <svg viewBox="0 0 100 100" width="180" height="180">
+      <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" stroke-width="2" />
+      <g id="ticks">
+        ${Array.from({ length: 60 }).map((_, i) => {
+    const length = (i % 5 === 0) ? 6 : 3;
+    return `<line x1="50" y1="4" x2="50" y2="${4 + length}" stroke="currentColor" stroke-width="${i % 5 === 0 ? 1.5 : 0.8}" transform="rotate(${i * 6} 50 50)" />`;
+  }).join('')}
+      </g>
+      <line id="hourHand" x1="50" y1="50" x2="50" y2="30" stroke="currentColor" stroke-linecap="round" stroke-width="3" />
+      <line id="minuteHand" x1="50" y1="50" x2="50" y2="22" stroke="currentColor" stroke-linecap="round" stroke-width="2" />
+      <line id="secondHand" x1="50" y1="53" x2="50" y2="16" stroke="currentColor" stroke-linecap="round" stroke-width="1" />
+      <circle cx="50" cy="50" r="1.8" fill="currentColor" />
+    </svg>`;
+  const settingsEl = document.createElement('div');
+  settingsEl.className = 'floating-clock-settings';
+  settingsEl.style.display = 'none';
+  const label = document.createElement('label');
+  label.textContent = 'Face: ';
+  const select = document.createElement('select');
+  select.className = 'floating-clock-select';
+  const faces = [
+    { value: 'lcd', label: 'LCD Green' },
+    { value: 'lcd-red', label: 'LCD Red' },
+    { value: 'pixel', label: 'Big Pixel' },
+    { value: 'analog', label: 'Analog' },
+  ];
+  faces.forEach(f => {
+    const opt = document.createElement('option');
+    opt.value = f.value;
+    opt.textContent = f.label;
+    if (f.value === face) opt.selected = true;
+    select.appendChild(opt);
+  });
+  settingsEl.appendChild(label);
+  settingsEl.appendChild(select);
+
+  body.appendChild(timeEl);
+  body.appendChild(analogEl);
+  body.appendChild(settingsEl);
+
+  container.appendChild(header);
+  container.appendChild(body);
+
+  applyClockFaceClass(container, face);
+  // Show correct body for initial face
+  const updateFaceVisibility = (f) => {
+    if (f === 'analog') {
+      analogEl.style.display = '';
+      timeEl.style.display = 'none';
+    } else {
+      analogEl.style.display = 'none';
+      timeEl.style.display = '';
+    }
+  };
+  updateFaceVisibility(face);
+
+  // Drag handlers
+  header.addEventListener('mousedown', (e) => {
+    clockUiDragging = true;
+    const rect = container.getBoundingClientRect();
+    clockUiDragOffsetX = e.clientX - rect.left;
+    clockUiDragOffsetY = e.clientY - rect.top;
+    document.body.style.userSelect = 'none';
+  });
+  document.addEventListener('mousemove', (e) => {
+    if (!clockUiDragging) return;
+    let left = e.clientX - clockUiDragOffsetX;
+    let top = e.clientY - clockUiDragOffsetY;
+    // Keep within viewport
+    left = Math.max(0, Math.min(window.innerWidth - container.offsetWidth, left));
+    top = Math.max(0, Math.min(window.innerHeight - container.offsetHeight, top));
+    container.style.left = `${left}px`;
+    container.style.top = `${top}px`;
+  });
+  document.addEventListener('mouseup', () => {
+    if (!clockUiDragging) return;
+    clockUiDragging = false;
+    document.body.style.userSelect = '';
+    const rect = container.getBoundingClientRect();
+    setStoredClockPosition({ left: Math.round(rect.left), top: Math.round(rect.top) });
+  });
+
+  // Actions
+  gearBtn.addEventListener('click', () => {
+    settingsEl.style.display = settingsEl.style.display === 'none' ? 'block' : 'none';
+  });
+  closeBtn.addEventListener('click', () => {
+    if (clockUiTimerId) clearInterval(clockUiTimerId);
+    clockUiTimerId = null;
+    container.remove();
+    clockUiEl = null;
+    setClockUiOpenState(false);
+  });
+  select.addEventListener('change', () => {
+    const val = select.value;
+    setStoredClockFace(val);
+    applyClockFaceClass(container, val);
+    updateFaceVisibility(val);
+    // Ensure updates resume after selection and render immediately
+    startClockUpdates();
+    if (val === 'analog') updateAnalog();
+    else timeEl.textContent = formatClockTime();
+  });
+
+  // Pause clock updates while interacting with the dropdown to avoid it closing
+  const stopClockUpdates = () => {
+    if (clockUiTimerId) {
+      clearInterval(clockUiTimerId);
+      clockUiTimerId = null;
+    }
+  };
+  const startClockUpdates = () => {
+    if (!clockUiTimerId) {
+      clockUiTimerId = setInterval(() => {
+        timeEl.textContent = formatClockTime();
+      }, 1000);
+    }
+  };
+  select.addEventListener('focus', stopClockUpdates);
+  select.addEventListener('mousedown', stopClockUpdates);
+  select.addEventListener('blur', startClockUpdates);
+
+  // Start timer
+  const updateAnalog = () => {
+    const now = new Date();
+    const seconds = now.getSeconds();
+    const minutes = now.getMinutes();
+    const hours = now.getHours() % 12 + minutes / 60;
+    const secAngle = seconds * 6; // 360/60
+    const minAngle = (minutes + seconds / 60) * 6;
+    const hourAngle = hours * 30; // 360/12
+    const root = analogEl.querySelector('svg');
+    if (root) {
+      const h = root.querySelector('#hourHand');
+      const m = root.querySelector('#minuteHand');
+      const s = root.querySelector('#secondHand');
+      if (h) h.setAttribute('transform', `rotate(${hourAngle} 50 50)`);
+      if (m) m.setAttribute('transform', `rotate(${minAngle} 50 50)`);
+      if (s) s.setAttribute('transform', `rotate(${secAngle} 50 50)`);
+    }
+  };
+
+  if (clockUiTimerId) clearInterval(clockUiTimerId);
+  clockUiTimerId = setInterval(() => {
+    if (select.value === 'analog') updateAnalog();
+    else timeEl.textContent = formatClockTime();
+  }, 1000);
+  // Do an immediate render
+  if (select.value === 'analog') updateAnalog();
+
+  document.body.appendChild(container);
+  clockUiEl = container;
+  setClockUiOpenState(true);
+}
+
 // Permission help helper
 function showPermissionHelp(permissionName) {
   const terminal = document.querySelector('.terminal');
@@ -662,8 +952,17 @@ function setupCommandInput() {
   setTimeout(() => commandInput.focus(), 0);
   setTimeout(() => commandInput.focus(), 100);
   
-  // Refocus on click anywhere in the document
-  document.addEventListener('click', () => {
+  // Refocus on click anywhere in the document, except when interacting with focusable UI
+  document.addEventListener('click', (e) => {
+    const target = e.target;
+    // Don't steal focus from floating clock/settings or other inputs/selects/buttons
+    if (target && (
+      target.closest('.floating-clock') ||
+      target.closest('.settings-overlay') ||
+      target.closest('select, input, textarea, button, [contenteditable="true"]')
+    )) {
+      return;
+    }
     const activeCommandLine = document.querySelector('.command-line:last-of-type');
     if (activeCommandLine) {
       const input = activeCommandLine.querySelector('input');
@@ -971,6 +1270,124 @@ function executeCommand(command, commandLine, typedText) {
     return;
   }
   
+  // Command: time - display current system time (MS-DOS style)
+  if (cmd === 'time') {
+    const now = new Date();
+    const pad2 = (n) => String(n).padStart(2, '0');
+
+    const hh24 = pad2(now.getHours());
+    const mm = pad2(now.getMinutes());
+    const ss = pad2(now.getSeconds());
+    const hundredths = pad2(Math.floor(now.getMilliseconds() / 10));
+    const time24 = `${hh24}:${mm}:${ss}.${hundredths}`;
+
+    const hours12Raw = now.getHours() % 12 || 12;
+    const hh12 = pad2(hours12Raw);
+    const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
+    const time12 = `${hh12}:${mm}:${ss}.${hundredths} ${ampm}`;
+
+    const variant = (args[0] || '').toLowerCase();
+
+    if (variant === 'ui') {
+      openClockUI();
+      createNewCommandLine();
+      return;
+    }
+
+    if (variant === '24') {
+      displayMessage(time24);
+      return;
+    }
+
+    if (variant === '12') {
+      displayMessage(time12);
+      return;
+    }
+
+    if (variant === 'live') {
+      if (isLiveTimeRunning) {
+        displayMessage('Live time is already running. Press ^C to exit.');
+        return;
+      }
+      isLiveTimeRunning = true;
+
+      const terminal = document.querySelector('.terminal');
+      const output = document.createElement('div');
+      output.className = 'command-output';
+      const responseColor = getComputedStyle(document.documentElement).getPropertyValue('--response-color') || '#ffffff';
+      output.style.color = responseColor;
+      output.style.whiteSpace = 'pre-wrap';
+      output.style.lineHeight = '1.6';
+      output.textContent = `Live time (press ^C to exit)\n${time24}`;
+      terminal.appendChild(output);
+
+      const update = () => {
+        const n = new Date();
+        const h = pad2(n.getHours());
+        const m = pad2(n.getMinutes());
+        const s = pad2(n.getSeconds());
+        const hs = pad2(Math.floor(n.getMilliseconds() / 10));
+        output.textContent = `Live time (press ^C to exit)\n${h}:${m}:${s}.${hs}`;
+      };
+      update();
+      liveTimeTimerId = setInterval(update, 200);
+
+      // Ctrl+C handler
+      liveTimeKeydownHandler = (e) => {
+        const isCtrlC = (e.key === 'c' || e.key === 'C') && (e.ctrlKey || e.metaKey);
+        if (isCtrlC && isLiveTimeRunning) {
+          clearInterval(liveTimeTimerId);
+          liveTimeTimerId = null;
+          isLiveTimeRunning = false;
+          document.removeEventListener('keydown', liveTimeKeydownHandler);
+          liveTimeKeydownHandler = null;
+          // Append exit message and create new prompt line
+          const exitLine = document.createElement('div');
+          exitLine.className = 'command-output';
+          exitLine.style.color = responseColor;
+          exitLine.textContent = '^C';
+          terminal.appendChild(exitLine);
+          createNewCommandLine();
+          window.scrollTo(0, document.body.scrollHeight);
+        }
+      };
+      document.addEventListener('keydown', liveTimeKeydownHandler);
+      window.scrollTo(0, document.body.scrollHeight);
+      return;
+    }
+
+    if (variant === 'full') {
+      const pad2Local = pad2;
+      const dateStr = `${now.getFullYear()}-${pad2Local(now.getMonth() + 1)}-${pad2Local(now.getDate())}`;
+      const tzParts = Intl.DateTimeFormat('en-US', { timeZoneName: 'short' }).formatToParts(now);
+      const tzPart = tzParts.find(p => p.type === 'timeZoneName');
+      const tzShort = tzPart ? tzPart.value : '';
+      const offsetMinutes = -now.getTimezoneOffset();
+      const sign = offsetMinutes >= 0 ? '+' : '-';
+      const absMinutes = Math.abs(offsetMinutes);
+      const offsetHH = pad2Local(Math.floor(absMinutes / 60));
+      const offsetMM = pad2Local(absMinutes % 60);
+      const tzOffset = `UTC${sign}${offsetHH}:${offsetMM}`;
+
+      const terminal = document.querySelector('.terminal');
+      const output = document.createElement('div');
+      output.className = 'command-output';
+      const responseColor = getComputedStyle(document.documentElement).getPropertyValue('--response-color') || '#ffffff';
+      output.style.color = responseColor;
+      output.style.whiteSpace = 'pre-wrap';
+      output.style.lineHeight = '1.6';
+      output.textContent = `⏰ Time Capsule\n\n📅 Date: ${dateStr}\n🕒 Time (24h): ${time24}\n🕰️ Time (12h): ${time12}\n🌍 Timezone: ${tzShort} (${tzOffset})\n\nMake every second count ✨`;
+      terminal.appendChild(output);
+      createNewCommandLine();
+      window.scrollTo(0, document.body.scrollHeight);
+      return;
+    }
+
+    // Default: show only current time (24h)
+    displayMessage(time24);
+    return;
+  }
+
   // Command: clear - clear screen but keep history
   if (cmd === 'clear') {
     clearTerminal();
@@ -1723,6 +2140,13 @@ Available Commands:
   help                      - Show this help message
   open <url>                - Open a URL in a new tab
   open settings             - Open settings modal
+
+  time                      - Display current time (24h)
+  time 24                   - Display time in 24-hour format
+  time 12                   - Display time in 12-hour format
+  time full                 - Display full details with date and timezone
+  time live                 - Show live ticking time (Press ^C to exit)
+  time ui                   - Open draggable clock UI with face settings
   
   cd fav                    - List all favorites
   cd fav <index>            - Open favorite by index number
@@ -1874,6 +2298,23 @@ function init() {
     const input = document.getElementById('commandInput');
     if (input) input.focus();
   }, 100);
+
+  // Restore clock UI open state if it was open last time
+  try {
+    const localOpen = (() => {
+      try { return localStorage.getItem('clockUiOpen') === '1'; } catch (_) { return false; }
+    })();
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.get('clockUiOpen', (data) => {
+        const wasOpen = (data && typeof data.clockUiOpen !== 'undefined') ? !!data.clockUiOpen : localOpen;
+        if (wasOpen) {
+          openClockUI();
+        }
+      });
+    } else if (localOpen) {
+      openClockUI();
+    }
+  } catch (_) { }
   
   // Refocus terminal when page becomes visible again (after opening a new tab)
   document.addEventListener('visibilitychange', () => {

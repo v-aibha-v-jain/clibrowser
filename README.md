@@ -59,6 +59,7 @@ A terminal-style browser extension that replaces your new tab page with a comman
 | `open settings`  | Open settings modal                           |
 | `open history`   | Show browsing history                         |
 | `search <query>` | Search Google for the query                   |
+| `--clear-history`| Clear all browsing history                    |
 | `<url>`          | Navigate to URL (auto-detects URLs)           |
 | `<text>`         | Search Google for text                        |
 
@@ -126,6 +127,13 @@ A terminal-style browser extension that replaces your new tab page with a comman
 | `create flow <id>` | Create a new flow (enter URLs, 'exit' to finish) |
 | `delete flow <id>` | Delete a flow                                    |
 | `--flow <id>`      | Open all URLs in a flow in new tabs              |
+
+### History Management
+
+| Command            | Description                                      |
+| ------------------ | ------------------------------------------------ |
+| `cd history`       | List browsing history                            |
+| `--clear-history`  | Clear all browsing history                       |
 
 ## Project Structure
 
@@ -201,6 +209,9 @@ browser> create flow morning
 
 browser> --flow morning
 # Opens all URLs in the 'morning' flow
+
+browser> --clear-history
+# Clears all browsing history
 ```
 
 ## Customization

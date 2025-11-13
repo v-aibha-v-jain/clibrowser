@@ -170,6 +170,106 @@ function deleteNote(index) {
   saveNotes(notes);
   displayMessage(`Note deleted.`);
 }
+// =============================
+// Sessions Feature
+// =============================
+function getSessions() {
+  try {
+    const raw = localStorage.getItem('sessions');
+    const obj = raw ? JSON.parse(raw) : {};
+    return typeof obj === 'object' && obj !== null ? obj : {};
+  } catch (_) {
+    return {};
+  }
+}
+
+function saveSessions(sessions) {
+  localStorage.setItem('sessions', JSON.stringify(sessions || {}));
+}
+
+function saveSession(id) {
+  if (typeof chrome !== 'undefined' && chrome.tabs && chrome.windows) {
+    chrome.windows.getCurrent({ populate: true }, (currentWindow) => {
+      if (chrome.runtime.lastError || !currentWindow) {
+        displayMessage('Error: Could not access current window.');
+        return;
+      }
+
+      const tabs = currentWindow.tabs || [];
+      const urls = tabs.map(tab => tab.url).filter(url => url && !url.startsWith('chrome://') && !url.startsWith('chrome-extension://'));
+
+      if (urls.length === 0) {
+        displayMessage('No valid tabs to save in current window.');
+        return;
+      }
+
+      const sessions = getSessions();
+      sessions[id] = {
+        urls: urls,
+        timestamp: new Date().toISOString(),
+        count: urls.length
+      };
+      saveSessions(sessions);
+      displayMessage(`Session "${id}" saved with ${urls.length} tab(s).`);
+    });
+  } else {
+    displayMessage('Error: Browser tabs API not available.');
+  }
+}
+
+function loadSession(id) {
+  const sessions = getSessions();
+  const session = sessions[id];
+
+  if (!session || !session.urls || session.urls.length === 0) {
+    displayMessage(`Session "${id}" not found or empty.`);
+    return;
+  }
+
+  session.urls.forEach((url) => {
+    window.open(url, '_blank');
+  });
+
+  displayMessage(`Loaded session "${id}" with ${session.urls.length} tab(s).`);
+}
+
+function listSessions() {
+  const sessions = getSessions();
+  const ids = Object.keys(sessions);
+  const terminal = document.querySelector('.terminal');
+  const output = document.createElement('div');
+  output.className = 'command-output';
+  const responseColor = getComputedStyle(document.documentElement).getPropertyValue('--response-color') || '#ffffff';
+  output.style.color = responseColor;
+  output.textContent = 'Sessions:';
+  if (ids.length === 0) {
+    const empty = document.createElement('div');
+    empty.textContent = 'No sessions found. Use "save session <id>" to create one.';
+    output.appendChild(empty);
+  } else {
+    ids.forEach((id, idx) => {
+      const session = sessions[id];
+      const idEl = document.createElement('div');
+      const date = session.timestamp ? new Date(session.timestamp).toLocaleString() : 'Unknown';
+      idEl.textContent = `${idx + 1}. ${id} (${session.count || 0} tabs, saved: ${date})`;
+      output.appendChild(idEl);
+    });
+  }
+  terminal.appendChild(output);
+  createNewCommandLine();
+  window.scrollTo(0, document.body.scrollHeight);
+}
+
+function deleteSession(id) {
+  const sessions = getSessions();
+  if (!sessions[id]) {
+    displayMessage('Session not found.');
+    return;
+  }
+  delete sessions[id];
+  saveSessions(sessions);
+  displayMessage(`Session "${id}" deleted.`);
+}
 // Terminal state variables
 let commandHistory = [];
 let historyIndex = -1;
@@ -1252,6 +1352,24 @@ function executeCommand(command, commandLine, typedText) {
     return;
   }
 
+  // Session commands
+  if (cmd === 'save' && args[0] && args[0].toLowerCase() === 'session' && args[1]) {
+    saveSession(args[1]);
+    return;
+  }
+  if (cmd === 'load' && args[0] && args[0].toLowerCase() === 'session' && args[1]) {
+    loadSession(args[1]);
+    return;
+  }
+  if (cmd === 'list' && args[0] && args[0].toLowerCase() === 'sessions') {
+    listSessions();
+    return;
+  }
+  if (cmd === 'delete' && args[0] && args[0].toLowerCase() === 'session' && args[1]) {
+    deleteSession(args[1]);
+    return;
+  }
+
   // Command: open settings
   if (cmd === 'open' && args.length > 0 && args[0].toLowerCase() === 'settings') {
     openSettings();
@@ -2136,71 +2254,42 @@ function displayHelp() {
   const responseColor = getComputedStyle(document.documentElement).getPropertyValue('--response-color') || '#ffffff';
   output.style.color = responseColor;
 
-  const helpText = `
-Available Commands:
+  // Load commands from commands.json
+  fetch('commands.json')
+    .then(response => response.json())
+    .then(data => {
+      let helpText = 'Available Commands:\n\n';
 
-  help                      - Show this help message
-  open <url>                - Open a URL in a new tab
-  open settings             - Open settings modal
+      data.categories.forEach(category => {
+        const maxCommandLength = Math.max(...category.commands.map(c => c.command.length));
 
-  time                      - Display current time (24h)
-  time 24                   - Display time in 24-hour format
-  time 12                   - Display time in 12-hour format
-  time full                 - Display full details with date and timezone
-  time live                 - Show live ticking time (Press ^C to exit)
-  time ui                   - Open draggable clock UI with face settings
-  
-  cd fav                    - List all favorites
-  cd fav <index>            - Open favorite by index number
-  cd fav <name>             - Open favorite by name (searches title)
-  
-  mkfv                      - Create a new favorite (interactive)
-  mkfv "name" "url"         - Create a favorite directly
-  rmfv <index>|<name>       - Remove a favorite by index or name
-  
-  cd notes                  - List all notes
-  create note "text"        - Create a note
-  delete note <index>       - Delete a note by index
-  
-  cd bm                     - List all custom bookmarks
-  cd bm <folder>            - List bookmarks in a specific folder
-  cd bm <path>              - List bookmarks in nested folder (use folder1/sub1)
-  cd bm <index>             - Open bookmark by index number
-  cd bm <name>              - Open bookmark by name
-  cd bm <folder> <index>    - Open bookmark by index in folder
-  cd bm <folder> <name>     - Open bookmark by name in folder
-  cd bm <path> <index|name> - Open bookmark in nested folder (use folder1/sub1)
+        category.commands.forEach(cmd => {
+          const padding = ' '.repeat(maxCommandLength - cmd.command.length + 2);
+          helpText += `  ${cmd.command}${padding}- ${cmd.description}\n`;
+        });
+        helpText += '\n';
+      });
 
-  cd flow <id>              - List all URLs in a flow
-  --flow <id>               - Open all URLs in a flow in new tabs
-  create flow <id>          - Create a new flow (enter URLs, 'exit' to finish)
-  delete flow <id>          - Delete a flow
+      if (data.footer) {
+        helpText += data.footer;
+      }
 
-  cd history                - List browsing history (page 1)
-  cd history <page>         - List browsing history (specific page)
-  
-  mkbm "name" "url"         - Create a bookmark (inside bookmark directory)
-  mkbm                      - Create a bookmark interactively (inside bookmark directory)
-  rmbm <name>               - Remove a bookmark (inside bookmark directory)
-  
-  rmbm <name>               - Remove a bookmark
-  rmbm -<folder> <name>     - Remove a bookmark from a specific folder
-  
-  search <query>            - Search Google for the query
-  
-  <url>                     - Navigate to URL (auto-detects URLs)
-  <text>                    - Search Google for text
-
-Settings:
-  Use "open settings" to customize terminal appearance.`;
-
-  output.textContent = helpText;
-  output.style.whiteSpace = 'pre-wrap';
-  output.style.lineHeight = '1.6';
-
-  terminal.appendChild(output);
-  createNewCommandLine();
-  window.scrollTo(0, document.body.scrollHeight);
+      output.textContent = helpText;
+      output.style.whiteSpace = 'pre-wrap';
+      output.style.lineHeight = '1.6';
+      terminal.appendChild(output);
+      createNewCommandLine();
+      window.scrollTo(0, document.body.scrollHeight);
+    })
+    .catch(error => {
+      console.error('Error loading commands:', error);
+      output.textContent = 'Error loading help commands. Please check commands.json file.';
+      output.style.whiteSpace = 'pre-wrap';
+      output.style.lineHeight = '1.6';
+      terminal.appendChild(output);
+      createNewCommandLine();
+      window.scrollTo(0, document.body.scrollHeight);
+    });
 }
 
 // Terminal-based input system (replaces prompt())

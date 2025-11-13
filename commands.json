@@ -1,0 +1,222 @@
+{
+    "categories": [
+        {
+            "name": "General",
+            "commands": [
+                {
+                    "command": "help",
+                    "description": "Show this help message"
+                },
+                {
+                    "command": "open <url>",
+                    "description": "Open a URL in a new tab"
+                },
+                {
+                    "command": "open settings",
+                    "description": "Open settings modal"
+                }
+            ]
+        },
+        {
+            "name": "Time",
+            "commands": [
+                {
+                    "command": "time",
+                    "description": "Display current time (24h)"
+                },
+                {
+                    "command": "time 24",
+                    "description": "Display time in 24-hour format"
+                },
+                {
+                    "command": "time 12",
+                    "description": "Display time in 12-hour format"
+                },
+                {
+                    "command": "time full",
+                    "description": "Display full details with date and timezone"
+                },
+                {
+                    "command": "time live",
+                    "description": "Show live ticking time (Press ^C to exit)"
+                },
+                {
+                    "command": "time ui",
+                    "description": "Open draggable clock UI with face settings"
+                }
+            ]
+        },
+        {
+            "name": "Favorites",
+            "commands": [
+                {
+                    "command": "cd fav",
+                    "description": "List all favorites"
+                },
+                {
+                    "command": "cd fav <index>",
+                    "description": "Open favorite by index number"
+                },
+                {
+                    "command": "cd fav <name>",
+                    "description": "Open favorite by name (searches title)"
+                },
+                {
+                    "command": "mkfv",
+                    "description": "Create a new favorite (interactive)"
+                },
+                {
+                    "command": "mkfv \"name\" \"url\"",
+                    "description": "Create a favorite directly"
+                },
+                {
+                    "command": "rmfv <index>|<name>",
+                    "description": "Remove a favorite by index or name"
+                }
+            ]
+        },
+        {
+            "name": "Notes",
+            "commands": [
+                {
+                    "command": "cd notes",
+                    "description": "List all notes"
+                },
+                {
+                    "command": "create note \"text\"",
+                    "description": "Create a note"
+                },
+                {
+                    "command": "delete note <index>",
+                    "description": "Delete a note by index"
+                }
+            ]
+        },
+        {
+            "name": "Bookmarks",
+            "commands": [
+                {
+                    "command": "cd bm",
+                    "description": "List all custom bookmarks"
+                },
+                {
+                    "command": "cd bm <folder>",
+                    "description": "List bookmarks in a specific folder"
+                },
+                {
+                    "command": "cd bm <path>",
+                    "description": "List bookmarks in nested folder (use folder1/sub1)"
+                },
+                {
+                    "command": "cd bm <index>",
+                    "description": "Open bookmark by index number"
+                },
+                {
+                    "command": "cd bm <name>",
+                    "description": "Open bookmark by name"
+                },
+                {
+                    "command": "cd bm <folder> <index>",
+                    "description": "Open bookmark by index in folder"
+                },
+                {
+                    "command": "cd bm <folder> <name>",
+                    "description": "Open bookmark by name in folder"
+                },
+                {
+                    "command": "cd bm <path> <index|name>",
+                    "description": "Open bookmark in nested folder (use folder1/sub1)"
+                },
+                {
+                    "command": "mkbm \"name\" \"url\"",
+                    "description": "Create a bookmark (inside bookmark directory)"
+                },
+                {
+                    "command": "mkbm",
+                    "description": "Create a bookmark interactively (inside bookmark directory)"
+                },
+                {
+                    "command": "rmbm <name>",
+                    "description": "Remove a bookmark (inside bookmark directory)"
+                },
+                {
+                    "command": "rmbm -<folder> <name>",
+                    "description": "Remove a bookmark from a specific folder"
+                }
+            ]
+        },
+        {
+            "name": "Flows",
+            "commands": [
+                {
+                    "command": "cd flow <id>",
+                    "description": "List all URLs in a flow"
+                },
+                {
+                    "command": "--flow <id>",
+                    "description": "Open all URLs in a flow in new tabs"
+                },
+                {
+                    "command": "create flow <id>",
+                    "description": "Create a new flow (enter URLs, 'exit' to finish)"
+                },
+                {
+                    "command": "delete flow <id>",
+                    "description": "Delete a flow"
+                }
+            ]
+        },
+        {
+            "name": "Sessions",
+            "commands": [
+                {
+                    "command": "save session <id>",
+                    "description": "Save all tabs from current browser window"
+                },
+                {
+                    "command": "load session <id>",
+                    "description": "Restore all tabs from a saved session"
+                },
+                {
+                    "command": "list sessions",
+                    "description": "List all saved sessions"
+                },
+                {
+                    "command": "delete session <id>",
+                    "description": "Delete a saved session"
+                }
+            ]
+        },
+        {
+            "name": "History",
+            "commands": [
+                {
+                    "command": "cd history",
+                    "description": "List browsing history (page 1)"
+                },
+                {
+                    "command": "cd history <page>",
+                    "description": "List browsing history (specific page)"
+                }
+            ]
+        },
+        {
+            "name": "Search & Navigation",
+            "commands": [
+                {
+                    "command": "search <query>",
+                    "description": "Search Google for the query"
+                },
+                {
+                    "command": "<url>",
+                    "description": "Navigate to URL (auto-detects URLs)"
+                },
+                {
+                    "command": "<text>",
+                    "description": "Search Google for text"
+                }
+            ]
+        }
+    ],
+    "footer": "Settings:\n  Use \"open settings\" to customize terminal appearance."
+}

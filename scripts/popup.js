@@ -36,6 +36,18 @@
     localStorage.setItem("notes", JSON.stringify(n || []));
   }
 
+  function getSessions() {
+    try {
+      const s = localStorage.getItem("sessions");
+      return s ? JSON.parse(s) : {};
+    } catch {
+      return {};
+    }
+  }
+  function saveSessions(sessions) {
+    localStorage.setItem("sessions", JSON.stringify(sessions || {}));
+  }
+
   // --- UI helpers ---
   const terminal = document.querySelector(".terminal");
   function appendOutput(text, cls) {
@@ -265,6 +277,66 @@
       notes.push(text);
       saveNotes(notes);
       appendOutput("Note saved");
+      createCommandLine();
+      return;
+    }
+
+    if (cmd === "save" && args[0] === "session") {
+      if (!args[1]) {
+        appendOutput("Usage: save session <id>");
+        createCommandLine();
+        return;
+      }
+      const sessionId = args[1];
+      if (chrome && chrome.tabs && chrome.windows) {
+        chrome.windows.getCurrent({ populate: true }, (currentWindow) => {
+          if (chrome.runtime.lastError || !currentWindow) {
+            appendOutput("Error: Could not access current window.", "error");
+            createCommandLine();
+            return;
+          }
+          const tabs = currentWindow.tabs || [];
+          const urls = tabs.map(tab => tab.url).filter(url => url && !url.startsWith('chrome://') && !url.startsWith('chrome-extension://'));
+          if (urls.length === 0) {
+            appendOutput("No valid tabs to save in current window.", "error");
+            createCommandLine();
+            return;
+          }
+          const sessions = getSessions();
+          sessions[sessionId] = {
+            urls: urls,
+            timestamp: new Date().toISOString(),
+            count: urls.length
+          };
+          saveSessions(sessions);
+          appendOutput(`Session "${sessionId}" saved with ${urls.length} tab(s).`);
+          createCommandLine();
+        });
+      } else {
+        appendOutput("Error: Browser tabs API not available.", "error");
+        createCommandLine();
+      }
+      return;
+    }
+
+    if (cmd === "load" && args[0] === "session") {
+      if (!args[1]) {
+        appendOutput("Usage: load session <id>");
+        createCommandLine();
+        return;
+      }
+      const sessionId = args[1];
+      const sessions = getSessions();
+      const session = sessions[sessionId];
+      if (!session || !session.urls || session.urls.length === 0) {
+        appendOutput(`Session "${sessionId}" not found or empty.`, "error");
+        createCommandLine();
+        return;
+      }
+      session.urls.forEach((url) => {
+        window.open(url, '_blank');
+      });
+      appendOutput(`Loaded session "${sessionId}" with ${session.urls.length} tab(s).`);
       createCommandLine();
       return;
     }

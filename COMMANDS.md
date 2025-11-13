@@ -51,12 +51,12 @@ See the README for full details and troubleshooting.
 
 ### Bookmarks
 
-| Command                         | Description                                   |
-| ------------------------------- | --------------------------------------------- |
-| `mkbm "name" "url"`             | Create bookmark at current location           |
-| `mkbm folder/path "name" "url"` | Create bookmark in nested path                |
-| `rmbm <name>`                   | Remove a bookmark                             |
-| `rmbm folder/path/name`         | Remove a bookmark from nested path            |
+| Command                         | Description                         |
+| ------------------------------- | ----------------------------------- |
+| `mkbm "name" "url"`             | Create bookmark at current location |
+| `mkbm folder/path "name" "url"` | Create bookmark in nested path      |
+| `rmbm <name>`                   | Remove a bookmark                   |
+| `rmbm folder/path/name`         | Remove a bookmark from nested path  |
 
 ### Favorites
 
@@ -81,6 +81,15 @@ See the README for full details and troubleshooting.
 | `create flow <id>` | Create a new flow (enter URLs, 'exit' to finish) |
 | `delete flow <id>` | Delete a flow                                    |
 | `--flow <id>`      | Open all URLs in a flow in new tabs              |
+
+### Sessions
+
+| Command               | Description                               |
+| --------------------- | ----------------------------------------- |
+| `save session <id>`   | Save all tabs from current browser window |
+| `load session <id>`   | Restore all tabs from a saved session     |
+| `list sessions`       | List all saved sessions                   |
+| `delete session <id>` | Delete a saved session                    |
 
 ---
 

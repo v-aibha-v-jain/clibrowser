@@ -426,18 +426,8 @@ function openClockUI() {
       clockUiTimerId = null;
     }
   };
-  const startClockUpdates = () => {
-    if (!clockUiTimerId) {
-      clockUiTimerId = setInterval(() => {
-        timeEl.textContent = formatClockTime();
-      }, 1000);
-    }
-  };
-  select.addEventListener('focus', stopClockUpdates);
-  select.addEventListener('mousedown', stopClockUpdates);
-  select.addEventListener('blur', startClockUpdates);
 
-  // Start timer
+  // Define updateAnalog function
   const updateAnalog = () => {
     const now = new Date();
     const seconds = now.getSeconds();
@@ -456,6 +446,18 @@ function openClockUI() {
       if (s) s.setAttribute('transform', `rotate(${secAngle} 50 50)`);
     }
   };
+
+  const startClockUpdates = () => {
+    if (!clockUiTimerId) {
+      clockUiTimerId = setInterval(() => {
+        if (select.value === 'analog') updateAnalog();
+        else timeEl.textContent = formatClockTime();
+      }, 1000);
+    }
+  };
+  select.addEventListener('focus', stopClockUpdates);
+  select.addEventListener('mousedown', stopClockUpdates);
+  select.addEventListener('blur', startClockUpdates);
 
   if (clockUiTimerId) clearInterval(clockUiTimerId);
   clockUiTimerId = setInterval(() => {
@@ -524,7 +526,7 @@ function saveCustomBookmarks(bookmarks) {
 // Make bookmark
 function makeBookmark(folder, name, url) {
   const bookmarks = getCustomBookmarks();
-  
+
   if (folder) {
     // Add to folder
     if (!bookmarks[folder]) {
@@ -539,7 +541,7 @@ function makeBookmark(folder, name, url) {
     // Add to root
     bookmarks[name] = url;
   }
-  
+
   saveCustomBookmarks(bookmarks);
   return `Bookmark "${name}" created successfully!`;
 }
@@ -569,7 +571,7 @@ function makeBookmarkAtPath(folders, name, url) {
 // Remove bookmark
 function removeBookmark(folder, name) {
   const bookmarks = getCustomBookmarks();
-  
+
   if (folder) {
     // Remove from folder
     if (bookmarks[folder] && typeof bookmarks[folder] === 'object') {
@@ -659,17 +661,17 @@ function displayCustomBookmarks(title, items, folders, currentPath = '') {
   const terminal = document.querySelector('.terminal');
   const output = document.createElement('div');
   output.className = 'command-output';
-  
+
   // Apply response color
   const responseColor = getComputedStyle(document.documentElement).getPropertyValue('--response-color') || '#ffffff';
   output.style.color = responseColor;
-  
+
   // Title
   const titleEl = document.createElement('div');
-  titleEl.textContent = title; 
+  titleEl.textContent = title;
   // titleEl.style.marginBottom = '10px';
   output.appendChild(titleEl);
-  
+
   // Bookmarks
   if (items.length > 0) {
     items.forEach((item, idx) => {
@@ -683,7 +685,7 @@ function displayCustomBookmarks(title, items, folders, currentPath = '') {
       output.appendChild(itemEl);
     });
   }
-  
+
   // Separator
   if (items.length > 0 && folders.length > 0) {
     const separator = document.createElement('div');
@@ -692,7 +694,7 @@ function displayCustomBookmarks(title, items, folders, currentPath = '') {
     separator.style.opacity = '0.5';
     output.appendChild(separator);
   }
-  
+
   // Folders
   if (folders.length > 0) {
     folders.forEach((folder, idx) => {
@@ -711,7 +713,7 @@ function displayCustomBookmarks(title, items, folders, currentPath = '') {
       output.appendChild(folderEl);
     });
   }
-  
+
   terminal.appendChild(output);
   createNewCommandLine();
   window.scrollTo(0, document.body.scrollHeight);
@@ -722,10 +724,10 @@ function displayMessage(message) {
   const terminal = document.querySelector('.terminal');
   const output = document.createElement('div');
   output.className = 'command-output';
-  
+
   const responseColor = getComputedStyle(document.documentElement).getPropertyValue('--response-color') || '#ffffff';
   output.style.color = responseColor;
-  
+
   output.textContent = message;
   terminal.appendChild(output);
   createNewCommandLine();
@@ -741,7 +743,7 @@ function handleChangeDirectory(args) {
     displayMessage("Returned to root path");
     return;
   }
-  
+
   // cd .. - go up one level
   if (args[0] === '..') {
     const pathParts = currentTerminalPath.split('/');
@@ -755,23 +757,23 @@ function handleChangeDirectory(args) {
     }
     return;
   }
-  
+
   // Handle paths with multiple parts (e.g. cd bm/work/projects)
   if (args[0].includes('/')) {
     const pathParts = args[0].split('/').filter(Boolean);
-    
+
     // Start from browser root for absolute paths
     let startPath = currentTerminalPath;
-    if (pathParts[0] === 'bm' || pathParts[0] === 'flows' || 
-        pathParts[0] === 'fav' || pathParts[0] === 'notes') {
+    if (pathParts[0] === 'bm' || pathParts[0] === 'flows' ||
+      pathParts[0] === 'fav' || pathParts[0] === 'notes') {
       startPath = 'browser';
     }
-    
+
     // Navigate each part of the path
     let currentPath = startPath;
     for (let i = 0; i < pathParts.length; i++) {
       const part = pathParts[i];
-      
+
       // Determine the next path
       let nextPath;
       if (currentPath === 'browser') {
@@ -786,7 +788,7 @@ function handleChangeDirectory(args) {
         const bookmarks = getCustomBookmarks();
         let node = bookmarks;
         const currentParts = currentPath.split('/').slice(2);
-        
+
         // Navigate to current position
         for (const p of currentParts) {
           if (node && typeof node[p] === 'object') {
@@ -796,7 +798,7 @@ function handleChangeDirectory(args) {
             return;
           }
         }
-        
+
         // Check if target exists
         if (node[part] && typeof node[part] === 'object') {
           nextPath = `${currentPath}/${part}`;
@@ -815,15 +817,15 @@ function handleChangeDirectory(args) {
         displayMessage(`Cannot navigate to ${args[0]}`);
         return;
       }
-      
+
       // Move to next path
       currentPath = nextPath;
     }
-    
+
     // Successfully navigated to the path
     currentTerminalPath = currentPath;
     currentTerminalPathDisplay = currentPath;
-    
+
     // Auto-list the contents
     if (currentPath === 'browser/flows') {
       listAllFlows();
@@ -835,18 +837,18 @@ function handleChangeDirectory(args) {
     } else if (currentPath === 'browser/notes') {
       listNotes();
     }
-    
+
     return;
   }
-  
+
   const targetPath = args[0].toLowerCase();
-  
+
   // Handle main paths from root
-  if (currentTerminalPath === "browser" && 
-      (targetPath === 'flows' || targetPath === 'fav' || targetPath === 'bm' || targetPath === 'notes')) {
+  if (currentTerminalPath === "browser" &&
+    (targetPath === 'flows' || targetPath === 'fav' || targetPath === 'bm' || targetPath === 'notes')) {
     currentTerminalPath = `browser/${targetPath}`;
     currentTerminalPathDisplay = `browser/${targetPath}`;
-    
+
     // Auto-list the contents of the new path
     if (targetPath === 'flows') {
       listAllFlows();
@@ -859,12 +861,12 @@ function handleChangeDirectory(args) {
     }
     return;
   }
-  
+
   // Handle subpaths for bookmarks
   if (currentTerminalPath.startsWith('browser/bm')) {
     const bookmarks = getCustomBookmarks();
     let currentNode = bookmarks;
-    
+
     // Navigate from root to current path
     const currentParts = currentTerminalPath.split('/').slice(2);
     for (const part of currentParts) {
@@ -875,7 +877,7 @@ function handleChangeDirectory(args) {
         return;
       }
     }
-    
+
     // Check if target is a valid subfolder
     if (currentNode[targetPath] && typeof currentNode[targetPath] === 'object') {
       // It's a subfolder, cd into it
@@ -895,7 +897,7 @@ function handleChangeDirectory(args) {
           items.push({ name, url: val });
         }
       });
-      
+
       const idx = parseInt(targetPath) - 1;
       if (idx >= 0 && idx < items.length) {
         const item = items[idx];
@@ -909,7 +911,7 @@ function handleChangeDirectory(args) {
     }
     return;
   }
-  
+
   // Handle opening favorites by name when in fav path
   if (currentTerminalPath === 'browser/fav') {
     const favs = getCustomFavorites();
@@ -920,7 +922,7 @@ function handleChangeDirectory(args) {
       displayMessage(`Opening ${favorite.name}: ${favorite.url}`);
       return;
     }
-    
+
     // Try by index
     if (!isNaN(targetPath)) {
       const idx = parseInt(targetPath) - 1;
@@ -931,11 +933,11 @@ function handleChangeDirectory(args) {
         return;
       }
     }
-    
+
     displayMessage(`Favorite '${targetPath}' not found`);
     return;
   }
-  
+
   // Path not found
   displayMessage(`Unknown path: ${targetPath}`);
 }
@@ -946,12 +948,12 @@ function setupCommandInput() {
   const commandLine = document.querySelector('.command-line');
   const cursor = document.querySelector('.cursor');
   const prompt = document.querySelector('.prompt');
-  
+
   // Keep input focused with multiple attempts
   commandInput.focus();
   setTimeout(() => commandInput.focus(), 0);
   setTimeout(() => commandInput.focus(), 100);
-  
+
   // Refocus on click anywhere in the document, except when interacting with focusable UI
   document.addEventListener('click', (e) => {
     const target = e.target;
@@ -969,17 +971,17 @@ function setupCommandInput() {
       if (input) input.focus();
     }
   });
-  
+
   // Create a span to display typed text
   const typedText = document.createElement('span');
   typedText.style.whiteSpace = 'pre';
   commandLine.insertBefore(typedText, cursor);
-  
+
   // Update displayed text and cursor position
   commandInput.addEventListener('input', () => {
     typedText.textContent = commandInput.value;
   });
-  
+
   commandInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       const command = commandInput.value.trim();
@@ -1012,53 +1014,53 @@ function setupCommandInput() {
 
 function createNewCommandLine() {
   const terminal = document.querySelector('.terminal');
-  
+
   // Create new command line
   const newCommandLine = document.createElement('div');
   newCommandLine.className = 'command-line';
-  
+
   // Create prompt
   const prompt = document.createElement('span');
   prompt.className = 'prompt';
   prompt.textContent = `${currentTerminalPathDisplay}>`;
-  
+
   // Create cursor
   const cursor = document.createElement('span');
   cursor.className = 'cursor';
   cursor.textContent = '_';
-  
+
   // Create typed text span
   const typedText = document.createElement('span');
   typedText.style.whiteSpace = 'pre';
-  
+
   // Create input
   const input = document.createElement('input');
   input.type = 'text';
   input.id = 'commandInput';
   input.spellcheck = false;
   input.autocomplete = 'off';
-  
+
   // Assemble command line
   newCommandLine.appendChild(prompt);
   newCommandLine.appendChild(typedText);
   newCommandLine.appendChild(cursor);
   newCommandLine.appendChild(input);
-  
+
   // Add to terminal
   terminal.appendChild(newCommandLine);
-  
+
   // Apply colors from settings
   const promptColor = getComputedStyle(document.documentElement).getPropertyValue('--prompt-color') || '#ffffff';
   const commandColor = getComputedStyle(document.documentElement).getPropertyValue('--command-color') || '#ffffff';
   prompt.style.color = promptColor;
   cursor.style.color = promptColor;
   typedText.style.color = commandColor;
-  
+
   // Setup input handler
   input.addEventListener('input', () => {
     typedText.textContent = input.value;
   });
-  
+
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       const command = input.value.trim();
@@ -1087,10 +1089,10 @@ function createNewCommandLine() {
       }
     }
   });
-  
+
   // Focus new input
   input.focus();
-  
+
   // Scroll to bottom
   window.scrollTo(0, document.body.scrollHeight);
 }
@@ -1099,21 +1101,21 @@ function createNewCommandLine() {
 function clearTerminal() {
   // Get terminal element
   const terminal = document.querySelector('.terminal');
-  
+
   // Remove all existing content while preserving history
   while (terminal.firstChild) {
     terminal.removeChild(terminal.firstChild);
   }
-  
+
   // Create a new command line at the top
   createNewCommandLine();
-  
+
   // Focus on the input
   const input = document.querySelector('#commandInput');
   if (input) {
     input.focus();
   }
-  
+
   // Make sure the view starts at the top of the screen
   window.scrollTo(0, 0);
 }
@@ -1123,7 +1125,7 @@ function executeCommand(command, commandLine, typedText) {
   const cmdParts = command.trim().split(/\s+/);
   const cmd = cmdParts[0].toLowerCase();
   const args = cmdParts.slice(1);
-  
+
   // Freeze the current command line
   freezeCommandLine(commandLine, command);
 
@@ -1170,21 +1172,21 @@ function executeCommand(command, commandLine, typedText) {
     // Check current path and list appropriate content
     const pathParts = currentTerminalPath.split('/');
     const root = pathParts[0];
-    
+
     if (pathParts.length === 1 && root === 'browser') {
       // At root, show available paths
       const output = document.createElement('div');
       output.className = 'command-output';
       const responseColor = getComputedStyle(document.documentElement).getPropertyValue('--response-color') || '#ffffff';
       output.style.color = responseColor;
-      
+
       const paths = [
         { name: 'flows/', description: 'Stored flow commands' },
         { name: 'fav/', description: 'Favorite websites' },
         { name: 'bm/', description: 'Bookmarks' },
         { name: 'notes/', description: 'Stored notes' }
       ];
-      
+
       paths.forEach(path => {
         const pathEl = document.createElement('div');
         pathEl.textContent = `${path.name.padEnd(12)} ${path.description}`;
@@ -1195,13 +1197,13 @@ function executeCommand(command, commandLine, typedText) {
         });
         output.appendChild(pathEl);
       });
-      
+
       document.querySelector('.terminal').appendChild(output);
       createNewCommandLine();
     } else if (pathParts.length > 1) {
       // In a subpath
       const subPath = pathParts[1];
-      
+
       if (subPath === 'flows') {
         listAllFlows();
       } else if (subPath === 'fav') {
@@ -1216,7 +1218,7 @@ function executeCommand(command, commandLine, typedText) {
     }
     return;
   }
-  
+
   // Flow feature
   if (cmd === '--flow' && args[0]) {
     openFlow(args[0]);
@@ -1249,27 +1251,27 @@ function executeCommand(command, commandLine, typedText) {
     }
     return;
   }
-  
+
   // Command: open settings
   if (cmd === 'open' && args.length > 0 && args[0].toLowerCase() === 'settings') {
     openSettings();
     createNewCommandLine();
     return;
   }
-  
+
   // Command: open history
   if (cmd === 'open' && args.length > 0 && args[0].toLowerCase() === 'history') {
     const page = args.length > 1 && !isNaN(args[1]) ? parseInt(args[1]) : 1;
     listHistory(page);
     return;
   }
-  
+
   // Command: help
   if (cmd === 'help') {
     displayHelp();
     return;
   }
-  
+
   // Command: time - display current system time (MS-DOS style)
   if (cmd === 'time') {
     const now = new Date();
@@ -1393,18 +1395,18 @@ function executeCommand(command, commandLine, typedText) {
     clearTerminal();
     return;
   }
-  
+
   // Command: open - enhanced to work with paths
   if (cmd === 'open') {
     if (args.length > 0) {
       const urlOrPath = args.join(' ');
-      
+
       // Check if current path is a bookmark path
       if (currentTerminalPath.startsWith('browser/bm')) {
         const bookmarks = getCustomBookmarks();
         const bmPathParts = currentTerminalPath.split('/').slice(2);
         let node = bookmarks;
-        
+
         // Navigate to current bookmark folder
         for (const part of bmPathParts) {
           if (node[part] && typeof node[part] === 'object') {
@@ -1414,7 +1416,7 @@ function executeCommand(command, commandLine, typedText) {
             break;
           }
         }
-        
+
         // Check if the bookmark exists in current folder
         if (node[urlOrPath] && typeof node[urlOrPath] === 'string') {
           const url = node[urlOrPath];
@@ -1423,14 +1425,14 @@ function executeCommand(command, commandLine, typedText) {
           createNewCommandLine();
           return;
         }
-        
+
         // Check if it's an index
         if (!isNaN(urlOrPath)) {
           const idx = parseInt(urlOrPath) - 1;
           const bookmarks = Object.entries(node)
             .filter(([_, val]) => typeof val === 'string')
             .map(([name, url]) => ({ name, url }));
-          
+
           if (idx >= 0 && idx < bookmarks.length) {
             const bm = bookmarks[idx];
             window.open(bm.url.startsWith('http') ? bm.url : `https://${bm.url}`, '_blank');
@@ -1440,7 +1442,7 @@ function executeCommand(command, commandLine, typedText) {
           }
         }
       }
-      
+
       // Check if current path is favorites
       if (currentTerminalPath === 'browser/fav') {
         const favs = getCustomFavorites();
@@ -1452,7 +1454,7 @@ function executeCommand(command, commandLine, typedText) {
           createNewCommandLine();
           return;
         }
-        
+
         // Try by index
         if (!isNaN(urlOrPath)) {
           const idx = parseInt(urlOrPath) - 1;
@@ -1465,7 +1467,7 @@ function executeCommand(command, commandLine, typedText) {
           }
         }
       }
-      
+
       // Default: Treat as URL
       // First, check if it's already a URL
       if (/^(https?:\/\/)/.test(urlOrPath)) {
@@ -1485,13 +1487,13 @@ function executeCommand(command, commandLine, typedText) {
     createNewCommandLine();
     return;
   }
-  
+
   // Command: cd - change directory/path
   if (cmd === 'cd') {
     handleChangeDirectory(args);
     return;
   }
-  
+
   // Command: create favorite - make favorite (path-aware)
   if (cmd === 'create' && args[0] === 'favorite') {
     // Check if we're in the right path
@@ -1499,7 +1501,7 @@ function executeCommand(command, commandLine, typedText) {
       displayMessage('Command "create favorite" only works in favorite paths. Use "cd fav" first.');
       return;
     }
-    
+
     // Support: create favorite "name" "url"
     if (args.length >= 3) {
       const name = args[1].replace(/^["']|["']$/g, '');
@@ -1513,7 +1515,7 @@ function executeCommand(command, commandLine, typedText) {
     // Interactive
     requestTerminalInput('Enter favorite name:', (name) => {
       if (!name) {
-        displayMessage('Favorite creation cancelled'); 
+        displayMessage('Favorite creation cancelled');
         return;
       }
       requestTerminalInput('Enter favorite URL:', (url) => {
@@ -1529,7 +1531,7 @@ function executeCommand(command, commandLine, typedText) {
     });
     return;
   }
-  
+
   // Command: mkfv (make favorite - root only, no folders)
   if (cmd === 'mkfv') {
     // Support: mkfv "name" "url"
@@ -1591,7 +1593,7 @@ function executeCommand(command, commandLine, typedText) {
     }
     return;
   }
-  
+
   // Command: delete favorite (path-aware)
   if (cmd === 'delete' && args[0] === 'favorite') {
     // Check if we're in the right path
@@ -1599,13 +1601,13 @@ function executeCommand(command, commandLine, typedText) {
       displayMessage('Command "delete favorite" only works in favorite paths. Use "cd fav" first.');
       return;
     }
-    
+
     const favs = getCustomFavorites();
     if (args.length < 2) {
       displayMessage('Usage: delete favorite <index>|<name>');
       return;
     }
-    
+
     const token = args.slice(1).join(' ');
     if (!isNaN(token)) {
       const idx = parseInt(token);
@@ -1636,9 +1638,9 @@ function executeCommand(command, commandLine, typedText) {
       displayMessage('Command "mkdir" only works in bookmark paths. Use "cd bm" first.');
       return;
     }
-    
+
     let name, url;
-    
+
     if (args.length >= 2) {
       // Direct syntax provided
       name = args[0].replace(/^["']|["']$/g, '');
@@ -1648,7 +1650,7 @@ function executeCommand(command, commandLine, typedText) {
       displayMessage(result);
       return;
     }
-    
+
     // Interactive mode
     requestTerminalInput('Enter bookmark name:', (name) => {
       if (!name) {
@@ -1661,7 +1663,7 @@ function executeCommand(command, commandLine, typedText) {
           displayMessage('Bookmark creation cancelled');
           return;
         }
-        
+
         const currentBmPath = currentTerminalPath.split('/').slice(2);
         const result = makeBookmarkAtPath(currentBmPath, name, url);
         displayMessage(result);
@@ -1669,13 +1671,13 @@ function executeCommand(command, commandLine, typedText) {
     });
     return;
   }
-  
+
   // Command: mkbm - make bookmark with support for nested paths
   if (cmd === 'mkbm') {
     let folderPath = "";
     let name = "";
     let url = "";
-    
+
     // Parse the command: mkbm [folder/path] name url
     if (args.length >= 2) {
       // Check if the first argument contains a folder path
@@ -1693,7 +1695,7 @@ function executeCommand(command, commandLine, typedText) {
         name = args[0].replace(/^["']|["']$/g, '');
         url = args[1].replace(/^["']|["']$/g, '');
       }
-      
+
       // Create the bookmark
       const folders = folderPath ? folderPath.split('/').filter(Boolean) : [];
       const result = makeBookmarkAtPath(folders, name, url);
@@ -1704,7 +1706,7 @@ function executeCommand(command, commandLine, typedText) {
       return;
     }
   }
-  
+
   // Command: rmdir - remove bookmark directory
   if (cmd === 'rmdir') {
     // Check if we're in the right path
@@ -1712,20 +1714,20 @@ function executeCommand(command, commandLine, typedText) {
       displayMessage('Command "rmdir" only works in bookmark paths. Use "cd bm" first.');
       return;
     }
-    
+
     if (args.length === 0) {
       displayMessage('Usage: rmdir <name>');
       return;
     }
-    
+
     const name = args[0];
     const currentBmPathParts = currentTerminalPath.split('/').slice(2);
-    
+
     if (currentBmPathParts.length > 0) {
       // We're in a subfolder, use the current path
       const bookmarks = getCustomBookmarks();
       let node = bookmarks;
-      
+
       for (const part of currentBmPathParts) {
         if (node[part] && typeof node[part] === 'object') {
           node = node[part];
@@ -1734,7 +1736,7 @@ function executeCommand(command, commandLine, typedText) {
           return;
         }
       }
-      
+
       // Now node points to current folder
       if (node[name] !== undefined) {
         delete node[name];
@@ -1750,26 +1752,26 @@ function executeCommand(command, commandLine, typedText) {
       return;
     }
   }
-  
+
   // Command: rmbm - remove bookmark with support for nested paths
   if (cmd === 'rmbm') {
     if (args.length === 0) {
       displayMessage('Usage: rmbm [folder/path/]name');
       return;
     }
-    
+
     let path = args[0];
-    
+
     if (path.includes('/')) {
       // Format: rmbm folder/path/bookmark
       const pathParts = path.split('/');
       const bookmarkName = pathParts.pop(); // Last part is the bookmark name
       const folderPath = pathParts; // Remaining parts form the folder path
-      
+
       // Find the bookmark and remove it
       const bookmarks = getCustomBookmarks();
       let node = bookmarks;
-      
+
       // Navigate to the folder
       for (const part of folderPath) {
         if (node && typeof node[part] === 'object') {
@@ -1779,7 +1781,7 @@ function executeCommand(command, commandLine, typedText) {
           return;
         }
       }
-      
+
       // Remove the bookmark
       if (node[bookmarkName] !== undefined) {
         if (typeof node[bookmarkName] === 'string') {
@@ -1800,12 +1802,12 @@ function executeCommand(command, commandLine, typedText) {
       if (currentTerminalPath.startsWith('browser/bm')) {
         const currentBmPathParts = currentTerminalPath.split('/').slice(2);
         const bookmarkName = args[0];
-        
+
         if (currentBmPathParts.length > 0) {
           // We're in a subfolder
           const bookmarks = getCustomBookmarks();
           let node = bookmarks;
-          
+
           // Navigate to current folder
           for (const part of currentBmPathParts) {
             if (node[part] && typeof node[part] === 'object') {
@@ -1815,7 +1817,7 @@ function executeCommand(command, commandLine, typedText) {
               return;
             }
           }
-          
+
           // Remove bookmark from current folder
           if (node[bookmarkName] !== undefined) {
             if (typeof node[bookmarkName] === 'string') {
@@ -1841,7 +1843,7 @@ function executeCommand(command, commandLine, typedText) {
     }
     return;
   }
-  
+
   // Command: search
   if (cmd === 'search') {
     if (args.length > 0) {
@@ -1851,12 +1853,12 @@ function executeCommand(command, commandLine, typedText) {
     createNewCommandLine();
     return;
   }
-  
+
   // Custom commands have been removed
-  
+
   // Default: Check if it's a URL
   const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/i;
-  
+
   if (urlPattern.test(command)) {
     // Navigate to URL in new tab
     const url = command.startsWith('http') ? command : `https://${command}`;
@@ -1865,7 +1867,7 @@ function executeCommand(command, commandLine, typedText) {
     // Search with Google in new tab
     window.open(`https://www.google.com/search?q=${encodeURIComponent(command)}`, '_blank');
   }
-  
+
   createNewCommandLine();
 }
 
@@ -1874,10 +1876,10 @@ function freezeCommandLine(commandLine, command) {
   const input = commandLine.querySelector('input');
   const cursor = commandLine.querySelector('.cursor');
   const typedText = commandLine.querySelector('span:not(.prompt):not(.cursor)');
-  
+
   if (input) input.remove();
   if (cursor) cursor.remove();
-  
+
   // Make typed text permanent
   if (typedText) {
     typedText.textContent = command;
@@ -1889,7 +1891,7 @@ function listFavorites() {
   if (chrome && chrome.bookmarks) {
     chrome.bookmarks.getTree((bookmarkTree) => {
       const favoriteItems = [];
-      
+
       function processNode(node) {
         if (node.title === 'Favorites' || node.title === 'Bookmarks Bar' || node.title === 'Bookmarks bar') {
           if (node.children) {
@@ -1900,19 +1902,19 @@ function listFavorites() {
             });
           }
         }
-        
+
         if (node.children) {
           node.children.forEach(processNode);
         }
       }
-      
+
       bookmarkTree.forEach(processNode);
-      
+
       // Display built-in favorites if available
       if (favoriteItems.length > 0) {
         displayCommandOutput('Browser Favorites:', favoriteItems, 'fav', 0);
       }
-      
+
       // Then also show custom favorites
       listCustomFavorites();
     });
@@ -1926,24 +1928,24 @@ function listBookmarks() {
   if (chrome && chrome.bookmarks) {
     chrome.bookmarks.getTree((bookmarkTree) => {
       const bookmarkItems = [];
-      
+
       function processNode(node) {
         if (node.url) {
           bookmarkItems.push({ title: node.title, url: node.url });
         }
-        
+
         if (node.children) {
           node.children.forEach(processNode);
         }
       }
-      
+
       bookmarkTree.forEach(processNode);
-      
+
       // Display built-in bookmarks if available
       if (bookmarkItems.length > 0) {
         displayCommandOutput('Browser Bookmarks:', bookmarkItems, 'bookmark', 0);
       }
-      
+
       // Then also show custom bookmarks
       listCustomBookmarks();
     });
@@ -1957,7 +1959,7 @@ function openFavoriteByIndexOrName(indexOrName) {
   if (chrome && chrome.bookmarks) {
     chrome.bookmarks.getTree((bookmarkTree) => {
       const favoriteItems = [];
-      
+
       function processNode(node) {
         if (node.title === 'Favorites' || node.title === 'Bookmarks Bar' || node.title === 'Bookmarks bar') {
           if (node.children) {
@@ -1968,14 +1970,14 @@ function openFavoriteByIndexOrName(indexOrName) {
             });
           }
         }
-        
+
         if (node.children) {
           node.children.forEach(processNode);
         }
       }
-      
+
       bookmarkTree.forEach(processNode);
-      
+
       // Check browser favorites first
       if (!isNaN(indexOrName)) {
         // By index
@@ -1987,26 +1989,26 @@ function openFavoriteByIndexOrName(indexOrName) {
         }
       } else {
         // By name
-        const favorite = favoriteItems.find(item => 
+        const favorite = favoriteItems.find(item =>
           item.title.toLowerCase() === indexOrName.toLowerCase()
         );
-        
+
         if (favorite) {
           window.open(favorite.url, '_blank');
           displayMessage(`Opening ${favorite.title}`);
           return;
         }
       }
-      
+
       // Then check custom favorites
       const customFavs = getCustomFavorites();
-      
+
       if (!isNaN(indexOrName)) {
         // Adjust index to account for browser favorites
         const adjustedIdx = parseInt(indexOrName) - 1 - favoriteItems.length;
         if (adjustedIdx >= 0 && adjustedIdx < customFavs.length) {
-          window.open(customFavs[adjustedIdx].url.startsWith('http') ? 
-                   customFavs[adjustedIdx].url : `https://${customFavs[adjustedIdx].url}`, '_blank');
+          window.open(customFavs[adjustedIdx].url.startsWith('http') ?
+            customFavs[adjustedIdx].url : `https://${customFavs[adjustedIdx].url}`, '_blank');
           displayMessage(`Opening [${indexOrName}] ${customFavs[adjustedIdx].name}`);
           return;
         }
@@ -2018,7 +2020,7 @@ function openFavoriteByIndexOrName(indexOrName) {
           return;
         }
       }
-      
+
       displayMessage(`Favorite '${indexOrName}' not found`);
     });
   } else {
@@ -2041,7 +2043,7 @@ function listHistory(page = 1) {
   if (chrome && chrome.history) {
     const itemsPerPage = 10;
     const startIndex = (page - 1) * itemsPerPage;
-    
+
     // Request more items to support pagination
     chrome.history.search({
       text: '',
@@ -2050,7 +2052,7 @@ function listHistory(page = 1) {
     }, (historyItems) => {
       const items = historyItems.slice(startIndex, startIndex + itemsPerPage)
         .map(item => ({ title: item.title || item.url, url: item.url }));
-      
+
       displayCommandOutput(`Browsing History (Page ${page}):`, items, 'history', startIndex);
       displayMessage(`Showing page ${page} (items ${startIndex + 1}-${Math.min(startIndex + itemsPerPage, historyItems.length)} of ${historyItems.length})`);
     });
@@ -2062,20 +2064,20 @@ function listHistory(page = 1) {
 // Display command output in terminal style
 function displayCommandOutput(title, items, type, startIndex = 0) {
   const terminal = document.querySelector('.terminal');
-  
+
   // Create output container
   const output = document.createElement('div');
   output.className = 'command-output';
-  
+
   // Apply response color from settings
   const responseColor = getComputedStyle(document.documentElement).getPropertyValue('--response-color') || '#ffffff';
   output.style.color = responseColor;
-  
+
   // Add title
   const titleEl = document.createElement('div');
   titleEl.textContent = title;
   output.appendChild(titleEl);
-  
+
   // Add items
   if (items.length === 0) {
     const emptyMsg = document.createElement('div');
@@ -2087,31 +2089,31 @@ function displayCommandOutput(title, items, type, startIndex = 0) {
       itemEl.textContent = `${startIndex + idx + 1}. ${item.title || 'Untitled'}`;
       itemEl.style.cursor = 'pointer';
       itemEl.style.padding = '5px 0';
-      
+
       // Make items clickable
       itemEl.addEventListener('click', () => {
         window.open(item.url, '_blank');
       });
-      
+
       // Hover effect
       itemEl.addEventListener('mouseenter', () => {
         itemEl.style.textDecoration = 'underline';
       });
-      
+
       itemEl.addEventListener('mouseleave', () => {
         itemEl.style.textDecoration = 'none';
       });
-      
+
       output.appendChild(itemEl);
     });
   }
-  
+
   // Append to terminal
   terminal.appendChild(output);
-  
+
   // Create new command line after output
   createNewCommandLine();
-  
+
   // Scroll to bottom
   window.scrollTo(0, document.body.scrollHeight);
 }
@@ -2129,11 +2131,11 @@ function displayHelp() {
   const terminal = document.querySelector('.terminal');
   const output = document.createElement('div');
   output.className = 'command-output';
-  
+
   // Apply response color
   const responseColor = getComputedStyle(document.documentElement).getPropertyValue('--response-color') || '#ffffff';
   output.style.color = responseColor;
-  
+
   const helpText = `
 Available Commands:
 
@@ -2191,11 +2193,11 @@ Available Commands:
 
 Settings:
   Use "open settings" to customize terminal appearance.`;
-  
+
   output.textContent = helpText;
   output.style.whiteSpace = 'pre-wrap';
   output.style.lineHeight = '1.6';
-  
+
   terminal.appendChild(output);
   createNewCommandLine();
   window.scrollTo(0, document.body.scrollHeight);
@@ -2287,13 +2289,13 @@ function requestTerminalInput(promptText, callback) {
 // Initialize
 function init() {
   setupCommandInput();
-  
+
   // Apply appearance settings after a short delay to ensure settings.js is loaded
   setTimeout(() => {
     if (window.applyAppearanceSettings) {
       window.applyAppearanceSettings();
     }
-    
+
     // Focus after settings are applied to ensure proper focus
     const input = document.getElementById('commandInput');
     if (input) input.focus();
@@ -2315,7 +2317,7 @@ function init() {
       openClockUI();
     }
   } catch (_) { }
-  
+
   // Refocus terminal when page becomes visible again (after opening a new tab)
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) {
@@ -2331,7 +2333,7 @@ function init() {
       });
     }
   });
-  
+
   // Also refocus on window focus
   window.addEventListener('focus', () => {
     // Use multiple attempts with varying delays to ensure focus is obtained
@@ -2356,14 +2358,14 @@ function setupTerminalHeader() {
       // Don't prevent default for control buttons
       if (!e.target.closest('.terminal-controls')) {
         e.preventDefault();
-        
+
         // Focus the command input
         const input = document.getElementById('commandInput');
         if (input) input.focus();
       }
     });
   }
-  
+
   // Make the header act like a typical window header (can be dragged in the future)
   const terminalTitle = document.querySelector('.terminal-title');
   if (terminalTitle) {
@@ -2372,7 +2374,7 @@ function setupTerminalHeader() {
       if (input) input.focus();
     });
   }
-  
+
   // Minimize button
   const minimizeBtn = document.querySelector('.terminal-minimize');
   if (minimizeBtn) {
@@ -2382,7 +2384,7 @@ function setupTerminalHeader() {
       displayMessage('Minimize action triggered');
     });
   }
-  
+
   // Maximize button
   const maximizeBtn = document.querySelector('.terminal-maximize');
   if (maximizeBtn) {
@@ -2392,7 +2394,7 @@ function setupTerminalHeader() {
       });
     });
   }
-  
+
   // Close button
   const closeBtn = document.querySelector('.terminal-close');
   if (closeBtn) {
@@ -2410,7 +2412,7 @@ function focusCommandInput() {
   const input = document.getElementById('commandInput');
   if (input) {
     input.focus();
-    
+
     // For some browsers that might need a slight delay
     setTimeout(() => {
       input.focus();
@@ -2445,20 +2447,20 @@ function showTab(tabName) {
   document.getElementById(`${tabName}-panel`).style.display = '';
 }
 
-document.getElementById('appearance-tab').onclick = function() {
+document.getElementById('appearance-tab').onclick = function () {
   showTab('appearance');
 };
-document.getElementById('preferences-tab').onclick = function() {
+document.getElementById('preferences-tab').onclick = function () {
   showTab('preferences');
 };
 
 // Load and save toggle state
 const toggle = document.getElementById('show-terminal-bubble-toggle');
-chrome.storage.local.get({showTerminalBubble: true}, (data) => {
+chrome.storage.local.get({ showTerminalBubble: true }, (data) => {
   toggle.checked = !!data.showTerminalBubble;
 });
-toggle.onchange = function() {
-  chrome.storage.local.set({showTerminalBubble: toggle.checked});
+toggle.onchange = function () {
+  chrome.storage.local.set({ showTerminalBubble: toggle.checked });
 };
 
 // Default values
@@ -2486,17 +2488,17 @@ chrome.storage.local.get({
 });
 
 // Update value display and apply blur on slider change
-headerBlur.addEventListener('input', function() {
+headerBlur.addEventListener('input', function () {
   headerBlurValue.textContent = this.value;
   applyBlur(this.value, backgroundBlur.value);
 });
-backgroundBlur.addEventListener('input', function() {
+backgroundBlur.addEventListener('input', function () {
   backgroundBlurValue.textContent = this.value;
   applyBlur(headerBlur.value, this.value);
 });
 
 // Save on settings save
-document.getElementById('saveSettings').addEventListener('click', function() {
+document.getElementById('saveSettings').addEventListener('click', function () {
   chrome.storage.local.set({
     headerBlur: parseInt(headerBlur.value, 10),
     backgroundBlur: parseInt(backgroundBlur.value, 10)

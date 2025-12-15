@@ -5,15 +5,6 @@
   if (window.__clibrowser_bubble_injected) return;
   window.__clibrowser_bubble_injected = true;
 
-  // Inject Font Awesome if not present
-  if (!document.querySelector('link[href*="fontawesome"]')) {
-    const fa = document.createElement('link');
-    fa.rel = 'stylesheet';
-    fa.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css';
-    fa.crossOrigin = 'anonymous';
-    document.head.appendChild(fa);
-  }
-
   function makeBubble(container) {
     if (document.getElementById(BUBBLE_ID)) return;
 
@@ -44,7 +35,7 @@
     });
 
     // compact icon (keeps visible on small size)
-    bubble.innerHTML = '<i class="fa-solid fa-terminal" style="color:black; font-size:15px;"></i>';
+    bubble.innerHTML = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>';
 
     container.appendChild(bubble);
 
@@ -162,7 +153,7 @@
   // Only inject bubble if enabled in storage
   function shouldShowBubble(cb) {
     if (chrome && chrome.storage && chrome.storage.local) {
-      chrome.storage.local.get({showTerminalBubble: true}, (data) => {
+      chrome.storage.local.get({ showTerminalBubble: true }, (data) => {
         cb(!!data.showTerminalBubble);
       });
     } else {

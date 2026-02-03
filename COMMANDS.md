@@ -33,21 +33,21 @@ See the README for full details and troubleshooting.
 
 ### Navigation
 
-| Command             | Description                                    |
-| ------------------- | ---------------------------------------------- |
-| `cd fav`            | List all favorites                             |
-| `cd fav <index>`    | Open favorite by index number                  |
-| `cd fav <name>`     | Open favorite by name (searches title)         |
-| `cd bm`             | List all custom bookmarks                      |
-| `cd bm <folder>`    | List bookmarks in a specific folder            |
-| `cd bm <path>`      | List bookmarks in nested folder (folder1/sub1) |
-| `cd bm <index>`     | Open bookmark by index number                  |
-| `cd bm <name>`      | Open bookmark by name                          |
-| `cd notes`          | List all notes                                 |
-| `cd flow <id>`      | List all URLs in a flow                        |
-| `cd history`        | List browsing history (page 1)                 |
-| `cd history <page>` | List browsing history (specific page)          |
-| `cd ..`             | Go up to parent directory                      |
+| Command               | Description                                    |
+| --------------------- | ---------------------------------------------- |
+| `cd fav`              | List all favorites                             |
+| `cd fav <index>`      | Open favorite by index number                  |
+| `cd fav <name>`       | Open favorite by name (searches title)         |
+| `cd bm`               | List all custom bookmarks                      |
+| `cd bm <folder>`      | List bookmarks in a specific folder            |
+| `cd bm <path>`        | List bookmarks in nested folder (folder1/sub1) |
+| `cd bm <index>`       | Open bookmark by index number                  |
+| `cd bm <name>`        | Open bookmark by name                          |
+| `cd notes`            | List all notes                                 |
+| `cd flow <id>`        | List all URLs in a flow                        |
+| `show history`        | Show last 10 browsing history entries          |
+| `show history <page>` | Show history page (1=1-10, 2=11-20, etc.)      |
+| `cd ..`               | Go up to parent directory                      |
 
 ### Bookmarks
 

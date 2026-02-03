@@ -113,17 +113,16 @@ body {
   color: var(--command-color, #fff);
 }
 
-.input-mode input{
+.command-line input,
+.input-mode input {
   background-color: transparent;
   border: none;
-  color: transparent;
-  caret-color: transparent;
+  color: var(--command-color, #fff);
   font-family: 'Consolas', 'Courier New', monospace;
   font-size: 16px;
-}
-
-.input-mode input:focus{
-  outline:none;
+  outline: none;
+  flex: 1;
+  min-width: 0;
 }
 
 .prompt {
@@ -132,40 +131,9 @@ body {
   user-select: none;
 }
 
-.cursor {
-  display: inline-block;
-  margin-left: 4px;
-  animation: blink 1s step-end infinite;
-  user-select: none;
-  pointer-events: none;
-  color: var(--prompt-color, #fff);
-}
-
-#commandInput {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: transparent;
-  font-family: 'Consolas', 'Courier New', monospace;
-  font-size: 16px;
-  caret-color: transparent;
-  padding: 0;
-  margin: 0;
-  z-index: -1;
-}
-
-@keyframes blink {
-  0%, 50% {
-    opacity: 1;
-  }
-  51%, 100% {
-    opacity: 0;
-  }
+.command-text {
+  color: var(--command-color, #fff);
+  white-space: pre;
 }
 
 .command-output {

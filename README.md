@@ -29,17 +29,14 @@ A terminal-style browser extension that replaces your new tab page with a comman
    Or download the ZIP file from GitHub and extract it.
 
 2. **Open Chrome/Edge Extensions Page**
-
    - Chrome: Navigate to `chrome://extensions/`
    - Edge: Navigate to `edge://extensions/`
    - Or click the three dots menu → Extensions → Manage Extensions
 
 3. **Enable Developer Mode**
-
    - Toggle the "Developer mode" switch in the top right corner
 
 4. **Load the extension**
-
    - Click "Load unpacked"
    - Select the folder where you extracted/cloned the extension
    - The CLI Browser Extension should now appear in your extensions list
@@ -64,32 +61,32 @@ A terminal-style browser extension that replaces your new tab page with a comman
 
 ### Time & Clock Commands
 
-| Command       | Description                                      |
-| ------------- | ------------------------------------------------ |
-| `time`        | Show current time (24-hour format)               |
-| `time 24`     | Show time in 24-hour format                      |
-| `time 12`     | Show time in 12-hour format                      |
-| `time full`   | Show full details with date and timezone         |
-| `time live`   | Show a live ticking time (press Ctrl+C to exit)  |
-| `time ui`     | Open a draggable clock UI with selectable faces  |
+| Command     | Description                                     |
+| ----------- | ----------------------------------------------- |
+| `time`      | Show current time (24-hour format)              |
+| `time 24`   | Show time in 24-hour format                     |
+| `time 12`   | Show time in 12-hour format                     |
+| `time full` | Show full details with date and timezone        |
+| `time live` | Show a live ticking time (press Ctrl+C to exit) |
+| `time ui`   | Open a draggable clock UI with selectable faces |
 
 ### Directory Navigation
 
-| Command             | Description                                        |
-| ------------------- | -------------------------------------------------- |
-| `cd fav`            | List all favorites                                 |
-| `cd fav <index>`    | Open favorite by index number                      |
-| `cd fav <name>`     | Open favorite by name (searches title)             |
-| `cd bm`             | List all custom bookmarks                          |
-| `cd bm <folder>`    | List bookmarks in a specific folder                |
-| `cd bm <path>`      | List bookmarks in nested folder (use folder1/sub1) |
-| `cd bm <index>`     | Open bookmark by index number                      |
-| `cd bm <name>`      | Open bookmark by name                              |
-| `cd notes`          | List all notes                                     |
-| `cd flow <id>`      | List all URLs in a flow                            |
-| `cd history`        | List browsing history (page 1)                     |
-| `cd history <page>` | List browsing history (specific page)              |
-| `cd ..`             | Go up to parent directory                          |
+| Command               | Description                                        |
+| --------------------- | -------------------------------------------------- |
+| `cd fav`              | List all favorites                                 |
+| `cd fav <index>`      | Open favorite by index number                      |
+| `cd fav <name>`       | Open favorite by name (searches title)             |
+| `cd bm`               | List all custom bookmarks                          |
+| `cd bm <folder>`      | List bookmarks in a specific folder                |
+| `cd bm <path>`        | List bookmarks in nested folder (use folder1/sub1) |
+| `cd bm <index>`       | Open bookmark by index number                      |
+| `cd bm <name>`        | Open bookmark by name                              |
+| `cd notes`            | List all notes                                     |
+| `cd flow <id>`        | List all URLs in a flow                            |
+| `show history`        | Show last 10 browsing history entries              |
+| `show history <page>` | Show history page (1=1-10, 2=11-20, etc.)          |
+| `cd ..`               | Go up to parent directory                          |
 
 ### Bookmark Management
 

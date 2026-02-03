@@ -8,6 +8,124 @@
                     "description": "Show this help message"
                 },
                 {
+                    "command": "pwd",
+                    "description": "Print working directory"
+                },
+                {
+                    "command": "clear",
+                    "description": "Clear terminal screen"
+                },
+                {
+                    "command": "clip copy <text>",
+                    "description": "Copy text to clipboard"
+                },
+                {
+                    "command": "clip paste",
+                    "description": "Paste from clipboard"
+                }
+            ]
+        },
+        {
+            "name": "Navigation (cd)",
+            "commands": [
+                {
+                    "command": "cd",
+                    "description": "Go back to browser root"
+                },
+                {
+                    "command": "cd ..",
+                    "description": "Go to parent directory"
+                },
+                {
+                    "command": "cd <path>",
+                    "description": "Navigate to path (bm, fav, notes, flows, history)"
+                },
+                {
+                    "command": "cd bm/folder1/folder2",
+                    "description": "Navigate to nested bookmark folder"
+                }
+            ]
+        },
+        {
+            "name": "List Files (ls)",
+            "commands": [
+                {
+                    "command": "ls",
+                    "description": "List all items in current directory"
+                },
+                {
+                    "command": "ls bm",
+                    "description": "List all bookmarks and bookmark folders"
+                },
+                {
+                    "command": "ls bm/folder",
+                    "description": "List bookmarks in specific folder"
+                },
+                {
+                    "command": "ls fav",
+                    "description": "List all favorites"
+                },
+                {
+                    "command": "ls notes",
+                    "description": "List all notes"
+                },
+                {
+                    "command": "ls flows",
+                    "description": "List all flows"
+                }
+            ]
+        },
+        {
+            "name": "Edit/Create (cat >)",
+            "commands": [
+                {
+                    "command": "cat > <name>",
+                    "description": "Create/edit item in current directory (bm, fav, or notes)"
+                },
+                {
+                    "command": "cat > bookmark_name",
+                    "description": "Create/edit bookmark in current bm folder"
+                },
+                {
+                    "command": "cat > folder/name",
+                    "description": "Create/edit bookmark in nested folder path"
+                }
+            ]
+        },
+        {
+            "name": "Delete (rm)",
+            "commands": [
+                {
+                    "command": "rm <name>",
+                    "description": "Delete item in current directory (bm, fav, or notes)"
+                },
+                {
+                    "command": "rm bookmark_name",
+                    "description": "Delete bookmark in current bm folder"
+                },
+                {
+                    "command": "rm folder/name",
+                    "description": "Delete bookmark in nested folder path"
+                }
+            ]
+        },
+        {
+            "name": "Delete Folder (rmdir)",
+            "commands": [
+                {
+                    "command": "rmdir <folder_name>",
+                    "description": "Delete a folder (bm directory only)"
+                }
+            ]
+        },
+        {
+            "name": "Open (open)",
+            "commands": [
+                {
+                    "command": "open <path>",
+                    "description": "Open any bookmark, favorite, session, or flow"
+                },
+                {
                     "command": "open <url>",
                     "description": "Open a URL in a new tab"
                 },
@@ -47,110 +165,11 @@
             ]
         },
         {
-            "name": "Favorites",
-            "commands": [
-                {
-                    "command": "cd fav",
-                    "description": "List all favorites"
-                },
-                {
-                    "command": "cd fav <index>",
-                    "description": "Open favorite by index number"
-                },
-                {
-                    "command": "cd fav <name>",
-                    "description": "Open favorite by name (searches title)"
-                },
-                {
-                    "command": "mkfv",
-                    "description": "Create a new favorite (interactive)"
-                },
-                {
-                    "command": "mkfv \"name\" \"url\"",
-                    "description": "Create a favorite directly"
-                },
-                {
-                    "command": "rmfv <index>|<name>",
-                    "description": "Remove a favorite by index or name"
-                }
-            ]
-        },
-        {
-            "name": "Notes",
-            "commands": [
-                {
-                    "command": "cd notes",
-                    "description": "List all notes"
-                },
-                {
-                    "command": "create note \"text\"",
-                    "description": "Create a note"
-                },
-                {
-                    "command": "delete note <index>",
-                    "description": "Delete a note by index"
-                }
-            ]
-        },
-        {
-            "name": "Bookmarks",
-            "commands": [
-                {
-                    "command": "cd bm",
-                    "description": "List all custom bookmarks"
-                },
-                {
-                    "command": "cd bm <folder>",
-                    "description": "List bookmarks in a specific folder"
-                },
-                {
-                    "command": "cd bm <path>",
-                    "description": "List bookmarks in nested folder (use folder1/sub1)"
-                },
-                {
-                    "command": "cd bm <index>",
-                    "description": "Open bookmark by index number"
-                },
-                {
-                    "command": "cd bm <name>",
-                    "description": "Open bookmark by name"
-                },
-                {
-                    "command": "cd bm <folder> <index>",
-                    "description": "Open bookmark by index in folder"
-                },
-                {
-                    "command": "cd bm <folder> <name>",
-                    "description": "Open bookmark by name in folder"
-                },
-                {
-                    "command": "cd bm <path> <index|name>",
-                    "description": "Open bookmark in nested folder (use folder1/sub1)"
-                },
-                {
-                    "command": "mkbm \"name\" \"url\"",
-                    "description": "Create a bookmark (inside bookmark directory)"
-                },
-                {
-                    "command": "mkbm",
-                    "description": "Create a bookmark interactively (inside bookmark directory)"
-                },
-                {
-                    "command": "rmbm <name>",
-                    "description": "Remove a bookmark (inside bookmark directory)"
-                },
-                {
-                    "command": "rmbm -<folder> <name>",
-                    "description": "Remove a bookmark from a specific folder"
-                }
-            ]
-        },
-        {
             "name": "Flows",
             "commands": [
                 {
-                    "command": "cd flow <id>",
-                    "description": "List all URLs in a flow"
+                    "command": "cd flows",
+                    "description": "List all flows"
                 },
                 {
                     "command": "--flow <id>",
@@ -191,12 +210,12 @@
             "name": "History",
             "commands": [
                 {
-                    "command": "cd history",
-                    "description": "List browsing history (page 1)"
+                    "command": "show history",
+                    "description": "Show last 10 browsing history entries"
                 },
                 {
-                    "command": "cd history <page>",
-                    "description": "List browsing history (specific page)"
+                    "command": "show history <page>",
+                    "description": "Show history page (1=1-10, 2=11-20, 3=21-30, etc.)"
                 }
             ]
         },
@@ -218,5 +237,5 @@
             ]
         }
     ],
-    "footer": "Settings:\n  Use \"open settings\" to customize terminal appearance."
+    "footer": "\nExamples:\n  cd bm/work              - Navigate to 'work' bookmark folder\n  cat > bookmark_name     - Create/edit a bookmark\n  rm bookmark_name        - Delete a bookmark\n  ls bm                   - List all bookmarks\n  pwd                     - Show current path\n  open /path/to/bookmark  - Open a bookmark by path\n\nSettings:\n  Use \"open settings\" to customize terminal appearance."
 }

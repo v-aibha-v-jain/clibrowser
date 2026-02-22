@@ -55,6 +55,7 @@ function listFlow(id) {
             const urlEl = document.createElement('div');
             urlEl.textContent = `${idx + 1}. ${url}`;
             urlEl.style.cursor = 'pointer';
+            urlEl.style.width = 'fit-content';
             urlEl.addEventListener('click', () => window.open(url.startsWith('http') ? url : `https://${url}`, '_blank'));
             output.appendChild(urlEl);
         });

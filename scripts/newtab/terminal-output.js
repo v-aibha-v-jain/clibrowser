@@ -179,6 +179,7 @@ function displayCommandOutput(title, items, type, startIndex = 0) {
             itemEl.textContent = `${startIndex + idx + 1}. ${item.title || 'Untitled'}`;
             itemEl.style.cursor = 'pointer';
             itemEl.style.padding = '5px 0';
+            itemEl.style.width = 'fit-content';
 
             itemEl.addEventListener('click', () => {
                 window.open(item.url, '_blank');

@@ -138,6 +138,7 @@ function handleListCommand(args) {
             const pathEl = document.createElement('div');
             pathEl.textContent = `${path.name.padEnd(12)} ${path.description}`;
             pathEl.style.cursor = 'pointer';
+            pathEl.style.width = 'fit-content';
             pathEl.addEventListener('click', () => {
                 const targetPath = path.name.replace('/', '');
                 handleChangeDirectory([targetPath]);
@@ -723,8 +724,11 @@ function handleLsCommand(args) {
             targetPath = 'browser/notes';
         } else if (arg === 'flows') {
             targetPath = 'browser/flows';
+        } else if (arg.startsWith('/')) {
+            targetPath = 'browser' + arg;
         } else {
-            targetPath = arg.startsWith('/') ? 'browser' + arg : 'browser/' + arg;
+            // Relative path - append to current path
+            targetPath = currentTerminalPath + '/' + arg;
         }
     }
 
@@ -789,6 +793,7 @@ function handleCatCreate(args) {
         requestTerminalInput('Enter URL for favorite: ', (url) => {
             if (url === null) {
                 displayMessage('Cancelled.');
+                createNewCommandLine();
                 return;
             }
 
@@ -801,27 +806,34 @@ function handleCatCreate(args) {
             }
             saveCustomFavorites(favs);
             displayMessage(`Favorite "${itemName}" saved!`);
+            createNewCommandLine();
         });
     } else if (subPath === 'bm') {
         requestTerminalInput('Enter URL for bookmark: ', (url) => {
             if (url === null) {
                 displayMessage('Cancelled.');
+                createNewCommandLine();
                 return;
             }
 
-            if (folderPath.length === 0) {
+            const currentBmPath = currentTerminalPath.split('/').slice(2);
+            const fullFolderPath = [...currentBmPath, ...folderPath];
+
+            if (fullFolderPath.length === 0) {
                 const bookmarks = getCustomBookmarks();
                 bookmarks[itemName] = url;
                 saveCustomBookmarks(bookmarks);
                 displayMessage(`Bookmark "${itemName}" saved!`);
             } else {
-                makeBookmarkAtPath(folderPath, itemName, url);
+                makeBookmarkAtPath(fullFolderPath, itemName, url);
             }
+            createNewCommandLine();
         });
     } else if (subPath === 'notes') {
         requestTerminalInput('Enter note content: ', (content) => {
             if (content === null) {
                 displayMessage('Cancelled.');
+                createNewCommandLine();
                 return;
             }
 
@@ -837,6 +849,7 @@ function handleCatCreate(args) {
             }
             saveNotes(notes);
             displayMessage('Note saved!');
+            createNewCommandLine();
         });
     }
 }

@@ -185,6 +185,7 @@ function displayCustomBookmarks(title, items, folders, currentPath = '') {
             itemEl.textContent = `${idx + 1}. ${item.title}`;
             itemEl.style.cursor = 'pointer';
             itemEl.style.padding = '5px 0';
+            itemEl.style.width = 'fit-content';
             itemEl.addEventListener('click', () => {
                 window.open(item.url.startsWith('http') ? item.url : `https://${item.url}`, '_blank');
             });
@@ -207,6 +208,7 @@ function displayCustomBookmarks(title, items, folders, currentPath = '') {
             folderEl.style.cursor = 'pointer';
             folderEl.style.padding = '5px 0';
             folderEl.style.fontWeight = 'bold';
+            folderEl.style.width = 'fit-content';
             folderEl.addEventListener('click', () => {
                 const newPath = `browser/bm${currentPath ? '/' + currentPath : ''}/${folder.title}`;
                 currentTerminalPath = newPath;

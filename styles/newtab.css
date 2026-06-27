@@ -32,6 +32,10 @@ body {
   border-bottom: 1px solid #3e3e3e;
   user-select: none;
   height: 30px;
+  position: sticky;
+  top: 0;
+  background-color: inherit;
+  z-index: 100;
 }
 
 .terminal-title {

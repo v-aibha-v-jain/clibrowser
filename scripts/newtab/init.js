@@ -4,7 +4,7 @@ function openSettings() {
     }
 }
 
-function displayHelp() {
+function displayHelp(topic = '') {
     const terminal = document.querySelector('.terminal');
     const output = document.createElement('div');
     output.className = 'command-output';
@@ -16,8 +16,18 @@ function displayHelp() {
         .then(response => response.json())
         .then(data => {
             let helpText = 'Available Commands:\n\n';
+            const query = String(topic || '').trim().toLowerCase();
+            const categories = query
+                ? data.categories.map(category => ({
+                    ...category,
+                    commands: category.commands.filter(cmd => {
+                        const haystack = `${category.name} ${cmd.command} ${cmd.description}`.toLowerCase();
+                        return haystack.includes(query);
+                    })
+                })).filter(category => category.commands.length > 0)
+                : data.categories;
 
-            data.categories.forEach(category => {
+            categories.forEach(category => {
                 const maxCommandLength = Math.max(...category.commands.map(c => c.command.length));
 
                 category.commands.forEach(cmd => {
@@ -27,8 +37,12 @@ function displayHelp() {
                 helpText += '\n';
             });
 
+            if (query && categories.length === 0) {
+                helpText = `No help entries matched "${topic}". Try \"help\" or \"help flow\".`;
+            }
+
             if (data.footer) {
-                helpText += data.footer;
+                helpText += query ? '\n' : data.footer;
             }
 
             output.textContent = helpText;

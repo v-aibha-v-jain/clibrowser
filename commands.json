@@ -8,6 +8,10 @@
                     "description": "Show this help message"
                 },
                 {
+                    "command": "help <term>",
+                    "description": "Search help entries by keyword"
+                },
+                {
                     "command": "pwd",
                     "description": "Print working directory"
                 },
@@ -16,12 +20,64 @@
                     "description": "Clear terminal screen"
                 },
                 {
+                    "command": "date",
+                    "description": "Show the current date and time"
+                },
+                {
+                    "command": "echo <text>",
+                    "description": "Print text back to the terminal"
+                },
+                {
+                    "command": "alias <name> <command>",
+                    "description": "Create a command alias"
+                },
+                {
+                    "command": "unalias <name>",
+                    "description": "Remove a command alias"
+                },
+                {
+                    "command": "@<key>",
+                    "description": "Open a bookmark shortcut by key"
+                },
+                {
+                    "command": "@<key> <url>",
+                    "description": "Save a bookmark shortcut by key"
+                },
+                {
+                    "command": "mksh <key> <name> <url>",
+                    "description": "Create a named bookmark shortcut"
+                },
+                {
+                    "command": "rmsh <key>",
+                    "description": "Remove a bookmark shortcut"
+                },
+                {
+                    "command": "sh ls",
+                    "description": "List all bookmark shortcuts"
+                },
+                {
                     "command": "clip copy <text>",
                     "description": "Copy text to clipboard"
                 },
                 {
                     "command": "clip paste",
                     "description": "Paste from clipboard"
+                },
+                {
+                    "command": "clip save <name>",
+                    "description": "Save the current clipboard to a named slot"
+                },
+                {
+                    "command": "clip load <name>",
+                    "description": "Load a named clipboard slot"
+                },
+                {
+                    "command": "clip ls",
+                    "description": "List saved clipboard slots"
+                },
+                {
+                    "command": "clip history",
+                    "description": "Show clipboard history"
                 }
             ]
         },
@@ -89,6 +145,18 @@
                 {
                     "command": "cat > folder/name",
                     "description": "Create/edit bookmark in nested folder path"
+                },
+                {
+                    "command": "note create <title> <content>",
+                    "description": "Create a structured note"
+                },
+                {
+                    "command": "note edit <id> <content>",
+                    "description": "Edit an existing note"
+                },
+                {
+                    "command": "note tag <id> <tags>",
+                    "description": "Add tags to a note"
                 }
             ]
         },
@@ -106,6 +174,10 @@
                 {
                     "command": "rm folder/name",
                     "description": "Delete bookmark in nested folder path"
+                },
+                {
+                    "command": "note rm <id>",
+                    "description": "Delete a note"
                 }
             ]
         },
@@ -165,6 +237,35 @@
             ]
         },
         {
+            "name": "Notes",
+            "commands": [
+                {
+                    "command": "note",
+                    "description": "Create a legacy text note"
+                },
+                {
+                    "command": "note ls",
+                    "description": "List all notes"
+                },
+                {
+                    "command": "note search <query>",
+                    "description": "Search notes by title, content, or tags"
+                },
+                {
+                    "command": "note cat <id>",
+                    "description": "Show a note"
+                },
+                {
+                    "command": "note edit <id> <content>",
+                    "description": "Edit a note"
+                },
+                {
+                    "command": "note tag <id> <tags>",
+                    "description": "Tag a note"
+                }
+            ]
+        },
+        {
             "name": "Flows",
             "commands": [
                 {
@@ -174,6 +275,18 @@
                 {
                     "command": "--flow <id>",
                     "description": "Open all URLs in a flow in new tabs"
+                },
+                {
+                    "command": "--flow <id> --delay <ms>",
+                    "description": "Open flow URLs with a delay between tabs"
+                },
+                {
+                    "command": "flow ls",
+                    "description": "List all flows with shell-style syntax"
+                },
+                {
+                    "command": "flow open <id>",
+                    "description": "Open a named flow with options"
                 },
                 {
                     "command": "create flow <id>",

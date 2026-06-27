@@ -12,19 +12,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     const maxCommandLength = Math.max(...category.commands.map(c => c.command.length));
 
                     category.commands.forEach(cmd => {
-                        const padding = ' '.repeat(maxCommandLength - cmd.command.length + 2);
-                        // Escape HTML entities for display
-                        const escapedCommand = cmd.command
-                            .replace(/&/g, '&amp;')
-                            .replace(/</g, '&lt;')
-                            .replace(/>/g, '&gt;');
-                        helpText += `          ${escapedCommand}${padding}- ${cmd.description}\n`;
+                        const padding = ' '.repeat(maxCommandLength - cmd.command.length + 4);
+                        helpText += `  ${cmd.command}${padding}- ${cmd.description}\n`;
                     });
                     helpText += '\n';
                 });
 
                 if (data.footer) {
-                    helpText += `          ${data.footer}`;
+                    helpText += `\n${data.footer}`;
                 }
 
                 helpTextElement.textContent = helpText.trimEnd();

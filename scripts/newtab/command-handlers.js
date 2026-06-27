@@ -1,16 +1,36 @@
 function executeCommand(command, commandLine) {
-    const cmdParts = command.trim().split(/\s+/);
-    const cmd = cmdParts[0].toLowerCase();
+    const normalizedCommand = resolveAliasCommand(command.trim());
+    const cmdParts = tokenizeCommandLine(normalizedCommand);
+    const cmd = (cmdParts[0] || '').toLowerCase();
     const args = cmdParts.slice(1);
 
-    freezeCommandLine(commandLine, command);
+    freezeCommandLine(commandLine, normalizedCommand);
+
+    if (!cmd) {
+        createNewCommandLine();
+        return;
+    }
 
     if (cmd === 'clip') handleClipCommand(args);
     else if (cmd === 'clear') clearTerminal();
-    else if (cmd === 'help') displayHelp();
+    else if (cmd === 'help') displayHelp(args.join(' '));
     else if (cmd === 'search') handleSearchCommand(args);
     else if (cmd === 'show' && args[0]?.toLowerCase() === 'history') handleShowHistoryCommand(args.slice(1));
     else if (cmd === 'ls') handleLsCommand(args);
+    else if (cmd === 'history') handleCommandHistoryCommand(args);
+    else if (cmd === 'date') {
+        displayMessage(formatBrowserDate('full'));
+    }
+    else if (cmd === 'echo') {
+        displayMessage(args.join(' '));
+    }
+
+    else if (cmd === 'alias') handleAliasCommand(args);
+    else if (cmd === 'unalias') handleUnaliasCommand(args);
+    else if (cmd === 'mksh') handleShortcutCommand(args, 'set');
+    else if (cmd === 'rmsh') handleShortcutCommand(args, 'remove');
+    else if (cmd === 'sh') handleShortcutCollectionCommand(args);
+    else if (cmd.startsWith('@')) handleAtShortcutCommand(cmd, args);
 
     else if (cmd === 'cd') handleChangeDirectory(args);
     else if (cmd === 'pwd') handlePwdCommand();
@@ -23,15 +43,21 @@ function executeCommand(command, commandLine) {
     else if (cmd === 'cat' && args[0] === '>') handleCatCreate(args.slice(1));
     else if (cmd === 'rm') handleRmCommand(args);
     else if (cmd === 'rmdir') handleRmdirCommand(args);
+    
+    else if (cmd === 'find') handleFindCommand(args);
+    else if (cmd === 'grep') handleGrepCommand(args);
+
 
     else if (cmd === 'time') handleTimeCommand(args);
 
-    else if (cmd === '--flow' && args[0]) openFlow(args[0]);
+    else if (cmd === '--flow' && args[0]) openFlow(args[0], parseFlowOpenOptions(args.slice(1)));
+    else if (cmd === 'flow') handleFlowCommand(args);
     else if (cmd === 'create' && args[0]?.toLowerCase() === 'flow' && args[1]) createFlow(args[1]);
     else if (cmd === 'delete' && args[0]?.toLowerCase() === 'flow' && args[1]) deleteFlow(args[1]);
 
     else if (cmd === 'create' && args[0]?.toLowerCase() === 'note') handleCreateNoteCommand(command);
     else if (cmd === 'delete' && args[0]?.toLowerCase() === 'note' && args[1]) deleteNote(parseInt(args[1]));
+    else if (cmd === 'note') handleNoteCommand(args);
 
     else if (cmd === 'save' && args[0]?.toLowerCase() === 'session' && args[1]) saveSession(args[1]);
     else if (cmd === 'load' && args[0]?.toLowerCase() === 'session' && args[1]) loadSession(args[1]);
@@ -47,6 +73,8 @@ function executeCommand(command, commandLine) {
     else if (cmd === 'mkbm') handleMkbmCommand(args);
     else if (cmd === 'rmbm') handleRmbmCommand(args);
 
+    else if (cmd === 'script') handleScriptCommand(args);
+
     else {
         const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/i;
         if (urlPattern.test(command)) {
@@ -61,7 +89,7 @@ function executeCommand(command, commandLine) {
 
 function handleClipCommand(args) {
     if (args.length === 0) {
-        displayMessage('Usage: clip copy <text> | clip paste');
+        displayMessage('Usage: clip copy <text> | clip paste | clip save <name> | clip load <name> | clip ls');
         return;
     }
 
@@ -74,7 +102,7 @@ function handleClipCommand(args) {
             return;
         }
         try {
-            localStorage.setItem('terminal_clipboard', clipContent);
+            setTerminalClipboard(clipContent);
             displayMessage('Copied to clipboard successfully!');
         } catch (e) {
             displayMessage('Failed to copy to clipboard.');
@@ -83,12 +111,117 @@ function handleClipCommand(args) {
     }
 
     if (subcmd === 'paste') {
-        const savedContent = localStorage.getItem('terminal_clipboard');
+        const savedContent = getTerminalClipboard();
         if (savedContent) {
             displayMessage(savedContent);
         } else {
             displayMessage('Clipboard is empty.');
         }
+        return;
+    }
+
+    if (subcmd === 'save') {
+        if (!args[1]) {
+            displayMessage('Usage: clip save <name>');
+            return;
+        }
+        const current = getTerminalClipboard();
+        if (!current) {
+            displayMessage('Clipboard is empty.');
+            return;
+        }
+        if (saveClipboardSlot(args[1], current)) {
+            displayMessage(`Saved clipboard slot '${args[1].toLowerCase()}'.`);
+        } else {
+            displayMessage('Failed to save clipboard slot.');
+        }
+        return;
+    }
+
+    if (subcmd === 'load') {
+        if (!args[1]) {
+            displayMessage('Usage: clip load <name>');
+            return;
+        }
+        const items = getSavedClipboardItems();
+        const slot = items[args[1].toLowerCase()];
+        if (!slot) {
+            displayMessage(`Clipboard slot '${args[1].toLowerCase()}' not found.`);
+            return;
+        }
+        setTerminalClipboard(slot.value);
+        displayMessage(slot.value);
+        return;
+    }
+
+    if (subcmd === 'ls' || subcmd === 'list') {
+        const items = getSavedClipboardItems();
+        const names = Object.keys(items).sort();
+        const terminal = document.querySelector('.terminal');
+        const output = document.createElement('div');
+        output.className = 'command-output';
+        const responseColor = getComputedStyle(document.documentElement).getPropertyValue('--response-color') || '#ffffff';
+        output.style.color = responseColor;
+        output.textContent = 'Saved clipboard slots:';
+        if (names.length === 0) {
+            const empty = document.createElement('div');
+            empty.textContent = 'No saved clipboard slots.';
+            output.appendChild(empty);
+        } else {
+            names.forEach((name) => {
+                const row = document.createElement('div');
+                row.textContent = `${name} -> ${items[name].value}`;
+                output.appendChild(row);
+            });
+        }
+        terminal.appendChild(output);
+        createNewCommandLine();
+        window.scrollTo(0, document.body.scrollHeight);
+        return;
+    }
+
+    if (subcmd === 'history') {
+        const history = getClipboardHistory();
+        const terminal = document.querySelector('.terminal');
+        const output = document.createElement('div');
+        output.className = 'command-output';
+        const responseColor = getComputedStyle(document.documentElement).getPropertyValue('--response-color') || '#ffffff';
+        output.style.color = responseColor;
+        output.textContent = 'Clipboard history:';
+        if (history.length === 0) {
+            const empty = document.createElement('div');
+            empty.textContent = 'Clipboard history is empty.';
+            output.appendChild(empty);
+        } else {
+            history.slice(0, 10).forEach((entry, index) => {
+                const row = document.createElement('div');
+                row.textContent = `${index + 1}. ${entry.value}`;
+                output.appendChild(row);
+            });
+        }
+        terminal.appendChild(output);
+        createNewCommandLine();
+        window.scrollTo(0, document.body.scrollHeight);
+        return;
+    }
+
+    if (subcmd === 'clear') {
+        if (!args[1]) {
+            displayMessage('Usage: clip clear <name>');
+            return;
+        }
+        if (removeClipboardSlot(args[1])) {
+            displayMessage(`Clipboard slot '${args[1].toLowerCase()}' removed.`);
+        } else {
+            displayMessage(`Clipboard slot '${args[1].toLowerCase()}' not found.`);
+        }
+        return;
+    }
+
+    if (subcmd === 'clear-all') {
+        saveClipboardHistory([]);
+        saveSavedClipboardItems({});
+        displayMessage('Clipboard history cleared.');
         return;
     }
 
@@ -115,6 +248,386 @@ function handleShowHistoryCommand(args) {
     }
 
     listHistory(page);
+}
+
+function handleCommandHistoryCommand(args) {
+    if (args[0] === '-c') {
+        commandHistory.length = 0;
+        historyIndex = 0;
+        displayMessage('Command history cleared.');
+        return;
+    }
+
+    if (args[0] === 'search' && args.length > 1) {
+        const query = args.slice(1).join(' ').toLowerCase();
+        const matches = commandHistory.filter(cmd => cmd.toLowerCase().includes(query));
+        if (matches.length === 0) {
+            displayMessage('No matching commands in history.');
+            return;
+        }
+        const terminal = document.querySelector('.terminal');
+        const output = document.createElement('div');
+        output.className = 'command-output';
+        const responseColor = getComputedStyle(document.documentElement).getPropertyValue('--response-color') || '#ffffff';
+        output.style.color = responseColor;
+        output.textContent = `History matching "${query}":`;
+        
+        matches.forEach((item, index) => {
+            const row = document.createElement('div');
+            row.textContent = `${index + 1}. ${item}`;
+            output.appendChild(row);
+        });
+        terminal.appendChild(output);
+        createNewCommandLine();
+        window.scrollTo(0, document.body.scrollHeight);
+        return;
+    }
+
+    if (commandHistory.length === 0) {
+        displayMessage('No commands in history.');
+        return;
+    }
+
+    const limit = args[0] && !Number.isNaN(Number(args[0])) ? Math.max(1, Number(args[0])) : commandHistory.length;
+    const items = commandHistory.slice(-limit);
+
+    const terminal = document.querySelector('.terminal');
+    const output = document.createElement('div');
+    output.className = 'command-output';
+    const responseColor = getComputedStyle(document.documentElement).getPropertyValue('--response-color') || '#ffffff';
+    output.style.color = responseColor;
+    output.textContent = 'Command history:';
+
+    items.forEach((item, index) => {
+        const row = document.createElement('div');
+        row.textContent = `${commandHistory.length - items.length + index + 1}. ${item}`;
+        output.appendChild(row);
+    });
+
+    terminal.appendChild(output);
+    createNewCommandLine();
+    window.scrollTo(0, document.body.scrollHeight);
+}
+
+function handleAliasCommand(args) {
+    if (args.length === 0) {
+        const aliases = getCommandAliases();
+        const names = Object.keys(aliases).sort();
+        if (names.length === 0) {
+            displayMessage('No aliases defined.');
+            return;
+        }
+
+        const terminal = document.querySelector('.terminal');
+        const output = document.createElement('div');
+        output.className = 'command-output';
+        const responseColor = getComputedStyle(document.documentElement).getPropertyValue('--response-color') || '#ffffff';
+        output.style.color = responseColor;
+        output.textContent = 'Aliases:';
+
+        names.forEach((name) => {
+            const row = document.createElement('div');
+            row.textContent = `${name}='${aliases[name]}'`;
+            output.appendChild(row);
+        });
+
+        terminal.appendChild(output);
+        createNewCommandLine();
+        window.scrollTo(0, document.body.scrollHeight);
+        return;
+    }
+
+    if (args.length === 1) {
+        displayMessage('Usage: alias <name> "<command>"');
+        return;
+    }
+
+    const aliasName = args[0].toLowerCase();
+    const aliasCommand = args.slice(1).join(' ');
+    const aliases = getCommandAliases();
+    aliases[aliasName] = aliasCommand;
+    saveCommandAliases(aliases);
+    displayMessage(`Alias '${aliasName}' created.`);
+}
+
+function handleUnaliasCommand(args) {
+    if (args.length === 0) {
+        displayMessage('Usage: unalias <name>');
+        return;
+    }
+
+    const aliasName = args[0].toLowerCase();
+    const aliases = getCommandAliases();
+    if (!aliases[aliasName]) {
+        displayMessage(`Alias '${aliasName}' not found.`);
+        return;
+    }
+
+    delete aliases[aliasName];
+    saveCommandAliases(aliases);
+    displayMessage(`Alias '${aliasName}' removed.`);
+}
+
+function handleNoteCommand(args) {
+    if (args.length === 0 || args[0] === 'ls' || args[0] === 'list') {
+        listNotes();
+        return;
+    }
+
+    const subcmd = args[0].toLowerCase();
+    if (subcmd === 'search') {
+        const query = args.slice(1).join(' ');
+        const matches = searchNotes(query);
+        const terminal = document.querySelector('.terminal');
+        const output = document.createElement('div');
+        output.className = 'command-output';
+        const responseColor = getComputedStyle(document.documentElement).getPropertyValue('--response-color') || '#ffffff';
+        output.style.color = responseColor;
+        output.textContent = query ? `Notes matching "${query}":` : 'Notes search:';
+
+        if (matches.length === 0) {
+            const empty = document.createElement('div');
+            empty.textContent = 'No matching notes found.';
+            output.appendChild(empty);
+        } else {
+            matches.forEach((note) => {
+                const row = document.createElement('div');
+                row.textContent = `${note.index}. ${note.title}: ${note.content}`;
+                output.appendChild(row);
+            });
+        }
+
+        terminal.appendChild(output);
+        createNewCommandLine();
+        window.scrollTo(0, document.body.scrollHeight);
+        return;
+    }
+
+    if (subcmd === 'cat' && args[1]) {
+        const notes = getNotes();
+        const index = findNoteIndexByToken(notes, args[1]);
+        if (index >= 0) {
+            const note = normalizeNoteItem(notes[index], index + 1);
+            const tags = note.tags.length ? `\nTags: ${note.tags.join(', ')}` : '';
+            displayMessage(`${note.title}\n\n${note.content}${tags}`);
+        } else {
+            displayMessage('Note not found.');
+        }
+        return;
+    }
+
+    if (subcmd === 'rm' && args[1]) {
+        const notes = getNotes();
+        const index = findNoteIndexByToken(notes, args[1]);
+        if (index >= 0) {
+            notes.splice(index, 1);
+            saveNotes(notes);
+            displayMessage('Note deleted.');
+        } else {
+            displayMessage('Note not found.');
+        }
+        return;
+    }
+
+    if (subcmd === 'edit' && args[1]) {
+        editNote(args[1], args.slice(2).join(' '));
+        return;
+    }
+
+    if (subcmd === 'tag' && args[1]) {
+        tagNote(args[1], args.slice(2));
+        return;
+    }
+
+    if (subcmd === 'create') {
+        const title = args[1];
+        const content = args.slice(2).join(' ');
+        if (!title || !content) {
+            displayMessage('Usage: note create <title> <content>');
+            return;
+        }
+        addStructuredNote(title, content);
+        return;
+    }
+
+    if (subcmd === 'export') {
+        exportNotes();
+        return;
+    }
+
+    if (subcmd === 'import' && args[1]) {
+        importNotes(args.slice(1).join(' '));
+        return;
+    }
+
+    addNote(args.join(' '));
+}
+
+function handleAtShortcutCommand(shortcutToken, args) {
+    const key = shortcutToken.replace(/^@/, '').trim().toLowerCase();
+    if (!key) {
+        displayMessage('Usage: @<key> [url]');
+        return;
+    }
+
+    if (args.length > 0) {
+        const url = args.join(' ');
+        setBookmarkShortcut(key, { name: key, url });
+        displayMessage(`Shortcut '@${key}' saved.`);
+        return;
+    }
+
+    const shortcut = resolveBookmarkShortcut(key);
+    if (!shortcut) {
+        displayMessage(`Shortcut '@${key}' not found.`);
+        return;
+    }
+
+    openNormalizedTarget(shortcut.url);
+    displayMessage(`Opening shortcut '@${key}': ${shortcut.name}`);
+}
+
+function handleShortcutCommand(args, mode) {
+    if (mode === 'remove') {
+        if (!args[0]) {
+            displayMessage('Usage: rmsh <key>');
+            return;
+        }
+
+        if (removeBookmarkShortcut(args[0])) {
+            displayMessage(`Shortcut '${args[0].toLowerCase()}' removed.`);
+        } else {
+            displayMessage(`Shortcut '${args[0].toLowerCase()}' not found.`);
+        }
+        return;
+    }
+
+    if (args.length < 2) {
+        displayMessage('Usage: mksh <key> [name] <url>');
+        return;
+    }
+
+    const key = args[0];
+    const url = args.length === 2 ? args[1] : args.slice(2).join(' ');
+    const name = args.length === 2 ? key : args[1];
+    setBookmarkShortcut(key, { name, url });
+    displayMessage(`Shortcut '${key.toLowerCase()}' saved.`);
+}
+
+function handleShortcutCollectionCommand(args) {
+    const subcmd = (args[0] || 'ls').toLowerCase();
+
+    if (subcmd === 'ls' || subcmd === 'list') {
+        const shortcuts = getBookmarkShortcuts();
+        const entries = Object.values(shortcuts).sort((a, b) => a.key.localeCompare(b.key));
+
+        const terminal = document.querySelector('.terminal');
+        const output = document.createElement('div');
+        output.className = 'command-output';
+        const responseColor = getComputedStyle(document.documentElement).getPropertyValue('--response-color') || '#ffffff';
+        output.style.color = responseColor;
+        output.textContent = 'Bookmark shortcuts:';
+
+        if (entries.length === 0) {
+            const empty = document.createElement('div');
+            empty.textContent = 'No shortcuts defined.';
+            output.appendChild(empty);
+        } else {
+            entries.forEach((entry) => {
+                const row = document.createElement('div');
+                row.textContent = `@${entry.key}  ${entry.name} -> ${entry.url}`;
+                output.appendChild(row);
+            });
+        }
+
+        terminal.appendChild(output);
+        createNewCommandLine();
+        window.scrollTo(0, document.body.scrollHeight);
+        return;
+    }
+
+    if (subcmd === 'rm' && args[1]) {
+        if (removeBookmarkShortcut(args[1])) {
+            displayMessage(`Shortcut '${args[1].toLowerCase()}' removed.`);
+        } else {
+            displayMessage(`Shortcut '${args[1].toLowerCase()}' not found.`);
+        }
+        return;
+    }
+
+    if (subcmd === 'export') {
+        const shortcuts = typeof getBookmarkShortcuts === 'function' ? getBookmarkShortcuts() : {};
+        const jsonStr = JSON.stringify(shortcuts);
+        displayMessage(`Shortcuts export:\n${jsonStr}`);
+        return;
+    }
+
+    if (subcmd === 'import' && args[1]) {
+        try {
+            const imported = JSON.parse(args.slice(1).join(' '));
+            if (typeof imported !== 'object') throw new Error('Not an object');
+            const shortcuts = typeof getBookmarkShortcuts === 'function' ? getBookmarkShortcuts() : {};
+            Object.assign(shortcuts, imported);
+            if (typeof saveBookmarkShortcuts === 'function') saveBookmarkShortcuts(shortcuts);
+            displayMessage('Shortcuts imported.');
+        } catch(e) {
+            displayMessage('Invalid shortcuts JSON.');
+        }
+        return;
+    }
+
+    displayMessage('Usage: sh ls | sh rm <key> | sh export | sh import <json>');
+}
+
+function handleFlowCommand(args) {
+    const subcmd = (args[0] || 'ls').toLowerCase();
+
+    if (subcmd === 'ls' || subcmd === 'list') {
+        listAllFlows();
+        return;
+    }
+
+    if ((subcmd === 'open' || subcmd === 'run') && args[1]) {
+        openFlow(args[1], parseFlowOpenOptions(args.slice(2)));
+        return;
+    }
+
+    if (subcmd === 'create' && args[1]) {
+        createFlow(args[1]);
+        return;
+    }
+
+    if (subcmd === 'delete' && args[1]) {
+        deleteFlow(args[1]);
+        return;
+    }
+
+    if (subcmd === 'add' && args[1] && args[2]) {
+        addUrlToFlow(args[1], args[2]);
+        return;
+    }
+
+    if (subcmd === 'rm' && args[1] && args[2]) {
+        removeUrlFromFlow(args[1], args[2]);
+        return;
+    }
+
+    if (subcmd === 'export' && args[1]) {
+        exportFlow(args[1]);
+        return;
+    }
+
+    if (subcmd === 'import' && args[1] && args[2]) {
+        importFlow(args[1], args.slice(2).join(' '));
+        return;
+    }
+
+    if (subcmd === 'copy' && args[1] && args[2]) {
+        copyFlow(args[1], args[2]);
+        return;
+    }
+
+    displayMessage('Usage: flow ls | flow open <id> [--delay N] [--window] | flow create <id> | flow delete <id> | flow add <id> <url> | flow rm <id> <url> | flow export <id> | flow import <id> <json> | flow copy <id> <newid>');
 }
 
 function handleListCommand(args) {
@@ -593,6 +1106,16 @@ function handleOpenCommand(args) {
     if (args.length > 0) {
         const urlOrPath = args.join(' ');
 
+        if (urlOrPath.startsWith('@')) {
+            const shortcut = resolveBookmarkShortcut(urlOrPath.slice(1));
+            if (shortcut) {
+                openNormalizedTarget(shortcut.url);
+                displayMessage(`Opening shortcut ${urlOrPath}: ${shortcut.name}`);
+                createNewCommandLine();
+                return;
+            }
+        }
+
         if (urlOrPath.startsWith('/') || (urlOrPath.includes('/') && !urlOrPath.includes('://'))) {
             let pathParts = urlOrPath.startsWith('/') ? urlOrPath.substring(1).split('/') : urlOrPath.split('/');
 
@@ -935,4 +1458,97 @@ function handleRmCommand(args) {
     }
 
     createNewCommandLine();
+}
+
+function handleScriptCommand(args) {
+    if (args.length === 0) {
+        displayMessage('Usage: script create <name> | script run <name>');
+        return;
+    }
+    const subcmd = args[0].toLowerCase();
+    if (subcmd === 'create' && args[1]) {
+        createScript(args[1]);
+        return;
+    }
+    if (subcmd === 'run' && args[1]) {
+        runScript(args[1]);
+        return;
+    }
+    displayMessage('Usage: script create <name> | script run <name>');
+}
+
+function handleFindCommand(args) {
+    if (args.length === 0) {
+        displayMessage('Usage: find <query>');
+        return;
+    }
+    const query = args.join(' ').toLowerCase();
+    const results = [];
+    
+    const notes = getNotes();
+    notes.forEach((n, i) => {
+        const title = typeof n === 'object' ? n.title : `Note ${i+1}`;
+        if (title.toLowerCase().includes(query)) results.push(`browser/notes/${i+1} (${title})`);
+    });
+    
+    const flows = getFlows();
+    Object.keys(flows).forEach(f => {
+        if (f.toLowerCase().includes(query)) results.push(`browser/flows/${f}`);
+    });
+    
+    if (results.length === 0) {
+        displayMessage('No matches found.');
+        return;
+    }
+    const terminal = document.querySelector('.terminal');
+    const output = document.createElement('div');
+    output.className = 'command-output';
+    const responseColor = getComputedStyle(document.documentElement).getPropertyValue('--response-color') || '#ffffff';
+    output.style.color = responseColor;
+    output.textContent = `Find results for "${query}":`;
+    results.forEach(res => {
+        const row = document.createElement('div');
+        row.textContent = res;
+        output.appendChild(row);
+    });
+    terminal.appendChild(output);
+    createNewCommandLine();
+    window.scrollTo(0, document.body.scrollHeight);
+}
+
+function handleGrepCommand(args) {
+    if (args.length === 0) {
+        displayMessage('Usage: grep "<pattern>"');
+        return;
+    }
+    const query = args.join(' ').replace(/^["']|["']$/g, '').toLowerCase();
+    const results = [];
+    
+    const notes = getNotes();
+    notes.forEach((n, i) => {
+        const content = typeof n === 'object' ? n.content : n;
+        if (content && content.toLowerCase().includes(query)) {
+            const title = typeof n === 'object' ? n.title : `Note ${i+1}`;
+            results.push(`${title}: ${content.substring(0, 50)}...`);
+        }
+    });
+    
+    if (results.length === 0) {
+        displayMessage('No matches found.');
+        return;
+    }
+    const terminal = document.querySelector('.terminal');
+    const output = document.createElement('div');
+    output.className = 'command-output';
+    const responseColor = getComputedStyle(document.documentElement).getPropertyValue('--response-color') || '#ffffff';
+    output.style.color = responseColor;
+    output.textContent = `Grep results for "${query}":`;
+    results.forEach(res => {
+        const row = document.createElement('div');
+        row.textContent = res;
+        output.appendChild(row);
+    });
+    terminal.appendChild(output);
+    createNewCommandLine();
+    window.scrollTo(0, document.body.scrollHeight);
 }
